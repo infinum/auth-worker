@@ -35,18 +35,11 @@ The configuration options are appended as query string parameters to the service
 
 The `filter.*` options allow you to limit which requests the credentials are added to. By default if you don't specify anything then all requests have credentials.
 
-| Option            | Description                                             | Required |
-| ----------------- | ------------------------------------------------------- | -------- |
-| `clientId`        | The OAuth 2.0 Client ID                                 | Yes      |
-| `tokenUrl`        | The OAuth 2.0 Token URL                                 | Yes      |
-| `filter.protocol` | The [URLPattern] `protocol` for the protected resource. |          |
-| `filter.username` | The [URLPattern] `username` for the protected resource. |          |
-| `filter.password` | The [URLPattern] `password` for the protected resource. |          |
-| `filter.hostname` | The [URLPattern] `hostname` for the protected resource. |          |
-| `filter.port`     | The [URLPattern] `port` for the protected resource.     |          |
-| `filter.pathname` | The [URLPattern] `pathname` for the protected resource. |          |
-| `filter.search`   | The [URLPattern] `search` for the protected resource.   |          |
-| `filter.hash`     | The [URLPattern] `hash` for the protected resource.     |          |
+| Option     | Description                                                                                                      | Required |
+| ---------- | ---------------------------------------------------------------------------------------------------------------- | -------- |
+| `clientId` | The OAuth 2.0 Client ID                                                                                          | Yes      |
+| `tokenUrl` | The OAuth 2.0 Token URL                                                                                          | Yes      |
+| `filter.`  | Object of keys that can be returned by the [`URL`](https://developer.mozilla.org/en-US/docs/Web/API/URL/URL) API |          |
 
 ## API
 

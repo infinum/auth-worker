@@ -1,8 +1,6 @@
 import { IConfig } from './interfaces';
 
 const config = JSON.parse(new URLSearchParams(location.search).get('config') || '{}') as IConfig;
-// @ts-expect-error URLPattern does not yet have types.
-const filterUrl = new URLPattern(config.filter);
 
 const oauth2 = {
 	accessToken: '',
@@ -12,7 +10,10 @@ const oauth2 = {
 };
 
 const isOauth2TokenURL = (url: string): boolean => config.tokenUrl === url;
-const isOauth2ProtectedResourceURL = (url: string): boolean => filterUrl.test(url);
+const isOauth2ProtectedResourceURL = (url: string): boolean =>
+	(Object.entries(new URL(url)) as Array<[keyof IConfig['filter'], string]>).some(
+		([key, value]) => config.filter[key] === value
+	);
 
 function modifyRequest(request: Request): Request {
 	if (isOauth2ProtectedResourceURL(request.url) && oauth2.tokenType && oauth2.accessToken) {
