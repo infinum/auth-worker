@@ -1,4 +1,4 @@
-import { IConfig } from './interfaces';
+import { IConfig, TFilter } from './interfaces';
 
 const config = JSON.parse(new URLSearchParams(location.search).get('config') || '{}') as IConfig;
 
@@ -7,12 +7,13 @@ const oauth2 = {
 	tokenType: '',
 	expiresIn: 0,
 	refreshToken: '',
+	csrf: '',
 };
 
 const isOauth2TokenURL = (url: string): boolean => config.tokenUrl === url;
 const isOauth2ProtectedResourceURL = (url: string): boolean =>
-	(Object.entries(new URL(url)) as Array<[keyof IConfig['filter'], string]>).some(
-		([key, value]) => config.filter[key] === value
+	(Object.entries(new URL(url)) as Array<[keyof TFilter, string]>).some(
+		([key, value]) => config.filter?.[key] === value
 	);
 
 function modifyRequest(request: Request): Request {
@@ -83,9 +84,77 @@ export async function fetchWithCredentialRefresh(input: RequestInfo, init?: Requ
 	return await useRefreshToken(request, response);
 }
 
+async function login(accessCode: string, _state: string): Promise<Response> {
+	// if (state !== '1') {
+	// 	return new Response('Invalid state', { status: 400 });
+	// }
+	const codeRequest = new Request(config.tokenUrl, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/x-www-form-urlencoded',
+		},
+		body: new URLSearchParams({
+			client_id: config.clientId,
+			grant_type: 'accessCode',
+			accessCode,
+		}),
+	});
+
+	const response = await fetch(codeRequest);
+	const responseData = await response.json();
+	console.log({ responseData });
+	if (response.status !== 200) {
+		return new Response(JSON.stringify(responseData), { status: response.status });
+	} else {
+		oauth2.accessToken = responseData.access_token;
+		oauth2.tokenType = responseData.token_type;
+		oauth2.expiresIn = responseData.expires_in;
+		oauth2.refreshToken = responseData.refresh_token;
+		return new Response(null, { status: 204 });
+	}
+}
+
+function logout() {
+	oauth2.accessToken = '';
+	oauth2.tokenType = '';
+	oauth2.expiresIn = 0;
+	oauth2.refreshToken = '';
+	return new Response(null, { status: 204 });
+}
+
+function userData() {
+	if (!oauth2.accessToken) {
+		return new Response(null, { status: 401 });
+	}
+	return new Response(JSON.stringify('oauth2.accessToken'), { status: 200 });
+}
+
+function csrf() {
+	oauth2.csrf = Math.random().toString(36);
+	return new Response(JSON.stringify(oauth2.csrf), { status: 200 });
+}
+
 export function initAuthWorker(): () => void {
-	const listener = (event: FetchEvent) => {
-		event.respondWith(fetchWithCredentialRefresh(event.request));
+	const listener = async (event: FetchEvent) => {
+		console.log(event.request.url, config);
+		if (event.request.url.endsWith(`${config.urlPrefix}/login`)) {
+			const payload = await event.request.json();
+			return event.respondWith(await login(payload.code, payload.state));
+		} else if (event.request.url.endsWith(`${config.urlPrefix}/logout`)) {
+			return event.respondWith(logout());
+		} else if (event.request.url.endsWith(`${config.urlPrefix}/user-data`)) {
+			return event.respondWith(userData());
+		} else if (event.request.url.endsWith(`${config.urlPrefix}/csrf`)) {
+			return event.respondWith(csrf());
+		} else if (event.request.method !== 'GET') {
+			const payload = await event.request.json();
+			if (payload.csrf !== oauth2.csrf) {
+				return event.respondWith(new Response('Invalid CSRF token', { status: 400 }));
+			}
+			event.respondWith(fetchWithCredentials(event.request));
+		} else {
+			event.respondWith(fetchWithCredentialRefresh(event.request));
+		}
 	};
 
 	(addEventListener as ServiceWorkerGlobalScope['addEventListener'])('fetch', listener);

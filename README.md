@@ -8,10 +8,13 @@ OAuth2 Service Worker handler
 // index.ts
 import { loadAuthWorker } from 'auth-worker';
 
-loadAuthWorker('./service-worker.js', {
-	clientId: 'example-client-id',
-	tokenUrl: 'https://api.example.com/token',
-});
+loadAuthWorker(
+	{
+		clientId: 'example-client-id',
+		tokenUrl: 'https://api.example.com/token',
+	},
+	'./service-worker.js'
+);
 ```
 
 ```ts
