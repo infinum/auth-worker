@@ -7,8 +7,8 @@
 		"dev": "vite",
 		"build": "tsc && vite build",
 		"preview": "vite preview",
-		"build:sw": "tsup ./sw/service-worker.ts --format iife --dts --sourcemap --external react,react-dom --out-dir ./public",
-		"dev:sw": "tsup ./sw/service-worker.ts --format iife --dts --sourcemap --external react,react-dom --out-dir ./public --watch"
+		"build:sw": "tsup ./sw/service-worker.ts --format iife --dts --sourcemap --out-dir ./public",
+		"dev:sw": "tsup ./sw/service-worker.ts --format iife --dts --sourcemap --out-dir ./public --watch"
 	},
 	"dependencies": {
 		"auth-worker": "file:../dist",

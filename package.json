@@ -1,10 +1,11 @@
 {
 	"name": "auth-worker",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "OAuth2 Service Worker handler",
 	"main": "index.js",
+	"module": "index.mjs",
 	"scripts": {
-		"build": "tsup src/index.ts src/worker.ts --dts --format esm,cjs --sourcemap && cp package.json dist",
+		"build": "tsup && cp package.json dist ",
 		"lint": "eslint .",
 		"dev": "nodemon -i example -i dist -e ts,tsx --exec \"npm run build:example\"",
 		"build:example": "npm run build && cd example && rm -rf node_modules/auth-worker && npm install"

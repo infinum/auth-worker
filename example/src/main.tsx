@@ -4,17 +4,9 @@ import App from './App';
 import './index.css';
 
 import { loadAuthWorker } from 'auth-worker';
-import { CLIENT_ID } from './consts';
+import { OAUTH2_CONFIG } from './config';
 
-loadAuthWorker(
-	{
-		clientId: CLIENT_ID,
-		tokenUrl: 'https://authorization-server.com/token',
-		filter: {},
-		urlPrefix: '/auth',
-	},
-	'/service-worker.global.js'
-);
+loadAuthWorker(OAUTH2_CONFIG, '/service-worker.global.js');
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
 	<React.StrictMode>

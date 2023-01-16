@@ -1,0 +1,8 @@
+{
+	"format": ["esm", "cjs"],
+	"sourcemap": true,
+	"dts": true,
+	"entryPoints": ["src/index.ts", "src/worker.ts"],
+	"splitting": false,
+	"clean": true
+}
