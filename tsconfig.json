@@ -3,6 +3,7 @@
 		"declaration": true,
 		"lib": ["ES2019", "WebWorker", "Webworker.Iterable", "DOM"],
 		"module": "es2020",
+		"moduleResolution": "node",
 		"outDir": "dist",
 		"sourceMap": true,
 		"strict": true,

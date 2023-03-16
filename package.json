@@ -7,7 +7,7 @@
 	"scripts": {
 		"build": "tsup && cp package.json dist ",
 		"lint": "eslint .",
-		"dev": "nodemon -i example -i dist -e ts,tsx --exec \"npm run build:example\"",
+		"dev": "nodemon -i example -i dist -i node_modules -e ts,tsx --exec \"npm run build:example\"",
 		"build:example": "npm run build && cd example && rm -rf node_modules/auth-worker && npm install"
 	},
 	"repository": {
@@ -29,5 +29,8 @@
 		"prettier": "^2.8.2",
 		"tsup": "^6.5.0",
 		"typescript": "^4.9.4"
+	},
+	"dependencies": {
+		"jwt-decode": "^3.1.2"
 	}
 }

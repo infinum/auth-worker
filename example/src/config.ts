@@ -1,8 +1,14 @@
-import { IConfig, Provider } from 'auth-worker';
+import { IFullConfig } from 'auth-worker';
+import { google } from 'auth-worker/providers';
 import { CLIENT_ID } from './consts';
 
-export const OAUTH2_CONFIG: IConfig = {
-	clientId: CLIENT_ID,
-	provider: Provider.Google,
-	urlPrefix: '/auth',
-};
+export const OAUTH2_CONFIG: IFullConfig = {
+	config: {
+		google: {
+			clientId: CLIENT_ID,
+			redirectUrl: '/redirect',
+			scopes: 'https://www.googleapis.com/auth/userinfo.profile',
+		},
+	},
+	providers: { google },
+} as const;
