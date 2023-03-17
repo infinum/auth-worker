@@ -1,3 +1,5 @@
+import { getState } from './state';
+
 export function getHashParams(): Record<string, string> {
 	const fragmentString = location.hash.substring(1);
 
@@ -12,4 +14,15 @@ export function getHashParams(): Record<string, string> {
 	}
 
 	return params;
+}
+
+export function log(...args: Array<unknown>): void {
+	getState().then(
+		(state) => {
+			if (state.config?.debug) {
+				console.log('[auth-worker]', ...args);
+			}
+		},
+		() => null
+	);
 }

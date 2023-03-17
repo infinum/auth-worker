@@ -1,6 +1,7 @@
 import { AuthError } from '../shared/enums';
 import { checkCsrfToken } from './csrf';
-import { getProviderOptions, getProviderParams, state } from './state';
+import { getProviderOptions, getProviderParams, getState, saveState } from './state';
+import { log } from './utils';
 
 function generateResponse(resp: null | Record<string, unknown>, status = 200): Response {
 	return new Response(JSON.stringify(resp), {
@@ -10,8 +11,9 @@ function generateResponse(resp: null | Record<string, unknown>, status = 200): R
 }
 
 export async function refreshToken(): Promise<void> {
-	const providerParams = getProviderParams();
-	const providerOptions = getProviderOptions();
+	const state = await getState();
+	const providerParams = await getProviderParams();
+	const providerOptions = await getProviderOptions();
 	if (!providerParams || !providerParams?.tokenUrl || !state.session?.refreshToken) {
 		throw new Error('No way to refresh the token');
 	}
@@ -45,9 +47,11 @@ export async function refreshToken(): Promise<void> {
 	if (providerParams.userInfoTokenName) {
 		state.session.userInfo = response[providerParams.userInfoTokenName];
 	}
+	saveState();
 }
 
 export async function fetchWithCredentials(request: Request): Promise<Response> {
+	const state = await getState();
 	if (!state.session) {
 		return generateResponse({ error: AuthError.Unauthorized }, 401);
 	} else if (state.session.expiresAt < Date.now()) {
@@ -80,12 +84,16 @@ export async function fetchWithCredentials(request: Request): Promise<Response> 
 export async function fetchListener(event: FetchEvent) {
 	if (event.request.method !== 'GET') {
 		const csrf = event.request.headers.get('X-CSRF-Token');
-		if (!csrf || !checkCsrfToken(csrf)) {
+		if (!csrf || !(await checkCsrfToken(csrf))) {
 			return event.respondWith(generateResponse({ error: AuthError.InvalidCSRF }, 400));
 		}
 	}
 
 	if (event.request.headers.get('X-Use-Auth')) {
+		log('fetch', event.request.method, event.request.url, {
+			csrf: Boolean(event.request.headers.get('X-CSRF-Token')),
+			auth: Boolean(event.request.headers.get('X-Use-Auth')),
+		});
 		return event.respondWith(fetchWithCredentials(event.request));
 	}
 }

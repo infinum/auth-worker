@@ -6,7 +6,7 @@ import './index.css';
 import { loadAuthWorker } from 'auth-worker';
 import { OAUTH2_CONFIG } from './config';
 
-loadAuthWorker(OAUTH2_CONFIG, '/service-worker.global.js');
+loadAuthWorker(OAUTH2_CONFIG.config, '/service-worker.global.js', '/', true);
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
 	<React.StrictMode>

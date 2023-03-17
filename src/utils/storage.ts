@@ -8,7 +8,11 @@ function saveData(data: Record<string, unknown>) {
 
 function loadData(): Record<string, unknown> {
 	const data = globalThis.localStorage.getItem(STATE_PARAM_NAME);
-	return data ? JSON.parse(data) : {};
+	try {
+		return data ? JSON.parse(data) : {};
+	} catch {
+		return {};
+	}
 }
 
 function getKey(key: string, defaultValue?: unknown) {

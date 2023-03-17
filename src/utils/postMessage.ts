@@ -11,16 +11,22 @@ export function callWorker<
 	const caller = getRandom();
 	return new Promise((resolve, reject) => {
 		const timeout = setTimeout(() => {
-			reject();
+			reject(new Error('Timeout'));
+			navigator.serviceWorker?.removeEventListener('message', handler);
 		}, TIMEOUT);
 
 		function handler(event: MessageEvent) {
 			if (event.data.key === caller) {
-				resolve(event.data);
+				navigator.serviceWorker?.removeEventListener('message', handler);
+				if (event.data.error) {
+					reject(new Error(event.data.error));
+				} else {
+					resolve(event.data.result);
+				}
 				clearTimeout(timeout);
 			}
 		}
 		navigator.serviceWorker?.addEventListener('message', handler);
-		globalThis.postMessage({ type: 'call', fnName, options, caller }, '*');
+		navigator.serviceWorker?.controller?.postMessage({ type: 'call', fnName, options, caller });
 	});
 }

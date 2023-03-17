@@ -1,6 +1,7 @@
 import { IBaseConfig } from '../interfaces/IBaseConfig';
 import { IFullConfig } from '../interfaces/IFullConfig';
 import { IProvider } from '../interfaces/IProvider';
+import { log } from './utils';
 
 interface IState {
 	csrf?: string;
@@ -16,11 +17,25 @@ interface IState {
 	providers: Record<string, IProvider>;
 }
 
-export const state: IState = {
-	providers: {},
-};
+let state: IState | null = null;
 
-export const getProviderParams = (): IProvider => {
+export async function getState() {
+	if (!state) {
+		const match = await caches.match('state');
+		state = match ? ((await match.json()) as IState) : { providers: {} };
+		log('getState', state);
+	}
+	return state;
+}
+
+export async function saveState() {
+	const cache = await caches.open('v1');
+	log('saveState', state);
+	await cache.put('state', new Response(JSON.stringify(state)));
+}
+
+export const getProviderParams = async (): Promise<IProvider> => {
+	const state = await getState();
 	if (!state.session?.provider) {
 		throw new Error('No provider found');
 	}
@@ -31,7 +46,8 @@ export const getProviderParams = (): IProvider => {
 	return providerParams;
 };
 
-export const getProviderOptions = (): IBaseConfig => {
+export const getProviderOptions = async (): Promise<IBaseConfig> => {
+	const state = await getState();
 	if (!state.session?.provider) {
 		throw new Error('No provider found');
 	}

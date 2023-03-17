@@ -1,13 +1,16 @@
-import { state } from './state';
+import { getState, saveState } from './state';
 import { getRandom } from '../shared/utils';
 
-export function getCsrfToken() {
+export async function getCsrfToken() {
+	const state = await getState();
 	if (state.csrf === null) {
 		state.csrf = getRandom();
+		saveState();
 	}
 	return state.csrf;
 }
 
-export function checkCsrfToken(token: string) {
+export async function checkCsrfToken(token: string) {
+	const state = await getState();
 	return state.csrf === token;
 }

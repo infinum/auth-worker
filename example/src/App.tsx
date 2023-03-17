@@ -1,26 +1,42 @@
-import { getLoginUrl, createSession, getUserData } from 'auth-worker';
+import { getLoginUrl, createSession, getUserData, deleteSession } from 'auth-worker';
 import { useEffect, useState } from 'react';
 import './App.css';
 import { OAUTH2_CONFIG } from './config';
 
 function App() {
-	const [activated, setActivated] = useState(false);
+	const [result, setResult] = useState<null | { name: string; picture: string }>(null);
 	useEffect(() => {
-		if (!activated && location.pathname === '/redirect') {
+		console.log('effect', location.pathname);
+		if (location.pathname === '/redirect') {
 			createSession('google').then(
 				(userInfo) => {
-					console.log(userInfo);
-					setActivated(true);
+					setResult(userInfo as unknown as { name: string; picture: string });
+					window.location.replace('/');
 				},
 				(err) => console.error(err)
 			);
-		} else if (localStorage.getItem('activated') === 'true') {
-			getUserData().then(console.log);
+		} else if (!result) {
+			getUserData().then(setResult as any, () => null);
 		}
-	}, [activated]);
+	});
+
+	const logout = async () => {
+		await deleteSession();
+		setResult(null);
+	};
+
 	return (
 		<div>
-			<a href={getLoginUrl(OAUTH2_CONFIG, 'google')}>Log in</a>
+			{result ? (
+				<div>
+					<h1>Logged in as {result.name}</h1>
+					<img src={result.picture} alt="Profile" />
+					<code>{JSON.stringify(result)}</code>
+					<button onClick={logout}>Logut</button>
+				</div>
+			) : (
+				<a href={getLoginUrl(OAUTH2_CONFIG, 'google')}>Log in</a>
+			)}
 		</div>
 	);
 }

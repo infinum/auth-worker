@@ -1,8 +1,10 @@
 import jwtDecode from 'jwt-decode';
 import { GrantFlow } from '../shared/enums';
-import { state } from './state';
+import { getState, saveState } from './state';
+import { log } from './utils';
 
 export async function createSession(params: string, provider: string, localState: string) {
+	const state = await getState();
 	const parsedParams = new URLSearchParams(params);
 
 	if (!state.config) {
@@ -36,6 +38,7 @@ export async function createSession(params: string, provider: string, localState
 			tokenType: parsedParams.get(providerParams.tokenTypeName ?? 'token_type') ?? 'Bearer',
 			expiresAt: Date.now() + expiresIn * 1000,
 		};
+		log('state', state);
 	}
 
 	if (providerParams.grantType === GrantFlow.AuthorizationCode) {
@@ -76,13 +79,17 @@ export async function createSession(params: string, provider: string, localState
 			userInfo: response[providerParams.userInfoTokenName ?? ''],
 			expiresAt: Date.now() + expiresIn * 1000,
 		};
+		log('state', state);
 	}
 
+	saveState();
 	return getUserData();
 }
 
 export async function getUserData() {
+	const state = await getState();
 	if (!state.session) {
+		log('state', state);
 		throw new Error('No session found');
 	}
 
@@ -106,6 +113,8 @@ export async function getUserData() {
 	throw new Error('No way to get user info');
 }
 
-export function deleteSession() {
+export async function deleteSession() {
+	const state = await getState();
 	state.session = undefined;
+	saveState();
 }

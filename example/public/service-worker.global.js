@@ -48,8 +48,54 @@
         initAuthWorker: () => initAuthWorker2
       });
       module.exports = __toCommonJS(worker_exports);
-      var state = {
-        providers: {}
+      function log(...args) {
+        getState().then(
+          (state2) => {
+            var _a;
+            if ((_a = state2.config) == null ? void 0 : _a.debug) {
+              console.log("[auth-worker]", ...args);
+            }
+          },
+          () => null
+        );
+      }
+      var state = null;
+      async function getState() {
+        if (!state) {
+          const match = await caches.match("state");
+          state = match ? await match.json() : { providers: {} };
+          log("getState", state);
+        }
+        return state;
+      }
+      async function saveState() {
+        const cache = await caches.open("v1");
+        log("saveState", state);
+        await cache.put("state", new Response(JSON.stringify(state)));
+      }
+      var getProviderParams = async () => {
+        var _a, _b, _c, _d;
+        const state2 = await getState();
+        if (!((_a = state2.session) == null ? void 0 : _a.provider)) {
+          throw new Error("No provider found");
+        }
+        const providerParams = (_d = (_b = state2.config) == null ? void 0 : _b.providers) == null ? void 0 : _d[(_c = state2.session) == null ? void 0 : _c.provider];
+        if (!providerParams) {
+          throw new Error("No provider params found");
+        }
+        return providerParams;
+      };
+      var getProviderOptions = async () => {
+        var _a, _b, _c, _d;
+        const state2 = await getState();
+        if (!((_a = state2.session) == null ? void 0 : _a.provider)) {
+          throw new Error("No provider found");
+        }
+        const providerOptions = (_d = (_b = state2.config) == null ? void 0 : _b.config) == null ? void 0 : _d[(_c = state2.session) == null ? void 0 : _c.provider];
+        if (!providerOptions) {
+          throw new Error("No provider options found");
+        }
+        return providerOptions;
       };
       function getRandom() {
         if ("crypto" in globalThis && "randomUUID" in globalThis.crypto) {
@@ -57,14 +103,17 @@
         }
         return Math.random().toString(36).slice(2);
       }
-      function getCsrfToken() {
-        if (state.csrf === null) {
-          state.csrf = getRandom();
+      async function getCsrfToken() {
+        const state2 = await getState();
+        if (state2.csrf === null) {
+          state2.csrf = getRandom();
+          saveState();
         }
-        return state.csrf;
+        return state2.csrf;
       }
-      function checkCsrfToken(token) {
-        return state.csrf === token;
+      async function checkCsrfToken(token) {
+        const state2 = await getState();
+        return state2.csrf === token;
       }
       function generateResponse(resp, status = 200) {
         return new Response(JSON.stringify(resp), {
@@ -73,10 +122,11 @@
         });
       }
       async function refreshToken() {
-        var _a, _b, _c, _d, _e, _f, _g;
-        const providerParams = (_c = (_a = state.config) == null ? void 0 : _a.providers) == null ? void 0 : _c[(_b = state.session) == null ? void 0 : _b.provider];
-        const providerOptions = (_f = (_d = state.config) == null ? void 0 : _d.config) == null ? void 0 : _f[(_e = state.session) == null ? void 0 : _e.provider];
-        if (!providerParams || !(providerParams == null ? void 0 : providerParams.tokenUrl) || !((_g = state.session) == null ? void 0 : _g.refreshToken)) {
+        var _a;
+        const state2 = await getState();
+        const providerParams = await getProviderParams();
+        const providerOptions = await getProviderOptions();
+        if (!providerParams || !(providerParams == null ? void 0 : providerParams.tokenUrl) || !((_a = state2.session) == null ? void 0 : _a.refreshToken)) {
           throw new Error("No way to refresh the token");
         }
         const resp = await fetch(providerParams.tokenUrl, {
@@ -87,28 +137,30 @@
           body: new URLSearchParams({
             client_id: providerOptions.clientId,
             grant_type: "refreshToken",
-            refreshToken: state.session.refreshToken
+            refreshToken: state2.session.refreshToken
           })
         });
         if (resp.status !== 200) {
           throw new Error("Could not refresh token");
         }
         const response = await resp.json();
-        state.session = {
-          provider: state.session.provider,
+        state2.session = {
+          provider: state2.session.provider,
           accessToken: response.access_token,
           tokenType: response.token_type,
           refreshToken: response.refresh_token,
           expiresAt: Date.now() + response.expires_in * 1e3
         };
         if (providerParams.userInfoTokenName) {
-          state.session.userInfo = response[providerParams.userInfoTokenName];
+          state2.session.userInfo = response[providerParams.userInfoTokenName];
         }
+        saveState();
       }
       async function fetchWithCredentials(request) {
-        if (!state.session) {
+        const state2 = await getState();
+        if (!state2.session) {
           return generateResponse({ error: 3 }, 401);
-        } else if (state.session.expiresAt < Date.now()) {
+        } else if (state2.session.expiresAt < Date.now()) {
           try {
             await refreshToken();
           } catch {
@@ -118,7 +170,7 @@
         const updatedRequest = new Request(request, {
           headers: {
             ...request.headers,
-            Authorization: `${state.session.tokenType} ${state.session.accessToken}`,
+            Authorization: `${state2.session.tokenType} ${state2.session.accessToken}`,
             "X-CSRF-Token": void 0,
             "X-Use-Auth": void 0
           }
@@ -136,11 +188,15 @@
       async function fetchListener(event) {
         if (event.request.method !== "GET") {
           const csrf = event.request.headers.get("X-CSRF-Token");
-          if (!csrf || !checkCsrfToken(csrf)) {
+          if (!csrf || !await checkCsrfToken(csrf)) {
             return event.respondWith(generateResponse({ error: 2 }, 400));
           }
         }
         if (event.request.headers.get("X-Use-Auth")) {
+          log("fetch", event.request.method, event.request.url, {
+            csrf: Boolean(event.request.headers.get("X-CSRF-Token")),
+            auth: Boolean(event.request.headers.get("X-Use-Auth"))
+          });
           return event.respondWith(fetchWithCredentials(event.request));
         }
       }
@@ -196,22 +252,90 @@
       }
       n.prototype = new Error(), n.prototype.name = "InvalidTokenError";
       var jwt_decode_esm_default = o;
-      function createSession(params, localState) {
+      async function createSession(params, provider, localState) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p;
+        const state2 = await getState();
+        const parsedParams = new URLSearchParams(params);
+        if (!state2.config) {
+          throw new Error("No config found");
+        }
+        const providerParams = (_a = state2.config.providers) == null ? void 0 : _a[provider];
+        const providerOptions = (_b = state2.config.config) == null ? void 0 : _b[provider];
+        if (!providerParams) {
+          throw new Error("No provider params found");
+        }
+        const stateParam = parsedParams.get((_c = providerParams.stateParam) != null ? _c : "state");
+        if (stateParam !== localState) {
+          throw new Error("Invalid state");
+        }
+        if (providerParams.grantType === 1) {
+          const expiresIn = parseInt((_e = parsedParams.get((_d = providerParams.expiresInName) != null ? _d : "expires_in")) != null ? _e : "", 10) || 3600;
+          const accessToken = parsedParams.get((_f = providerParams.accessTokenName) != null ? _f : "access_token");
+          if (!accessToken) {
+            throw new Error("No access token found");
+          }
+          state2.session = {
+            provider,
+            accessToken,
+            userInfo: providerParams.userInfoTokenName ? (_g = parsedParams.get(providerParams.userInfoTokenName)) != null ? _g : void 0 : void 0,
+            tokenType: (_i = parsedParams.get((_h = providerParams.tokenTypeName) != null ? _h : "token_type")) != null ? _i : "Bearer",
+            expiresAt: Date.now() + expiresIn * 1e3
+          };
+          log("state", state2);
+        }
+        if (providerParams.grantType === 0) {
+          const accessCode = parsedParams.get((_j = providerParams.authorizationCodeParam) != null ? _j : "code");
+          if (!accessCode) {
+            throw new Error("No access code found");
+          }
+          const res = await fetch(providerParams.tokenUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: new URLSearchParams({
+              client_id: providerOptions.clientId,
+              grant_type: "authorization_code",
+              code: accessCode
+            })
+          });
+          if (res.status !== 200) {
+            throw new Error("Could not get token");
+          }
+          const response = await res.json();
+          const expiresIn = response[(_k = providerParams.expiresInName) != null ? _k : ""] || 3600;
+          const accessToken = response[(_l = providerParams.accessTokenName) != null ? _l : "access_token"];
+          if (!accessToken) {
+            throw new Error("No access token found");
+          }
+          state2.session = {
+            provider,
+            accessToken,
+            tokenType: (_n = response[(_m = providerParams.tokenTypeName) != null ? _m : "token_type"]) != null ? _n : "Bearer",
+            refreshToken: response[(_o = providerParams.refreshTokenName) != null ? _o : ""],
+            userInfo: response[(_p = providerParams.userInfoTokenName) != null ? _p : ""],
+            expiresAt: Date.now() + expiresIn * 1e3
+          };
+          log("state", state2);
+        }
+        saveState();
         return getUserData();
       }
       async function getUserData() {
         var _a, _b, _c, _d;
-        if (!state.session) {
+        const state2 = await getState();
+        if (!state2.session) {
+          log("state", state2);
           throw new Error("No session found");
         }
-        const providerParams = (_b = (_a = state.config) == null ? void 0 : _a.providers) == null ? void 0 : _b[state.session.provider];
-        if (state.session.userInfo) {
-          const decoded = jwt_decode_esm_default(state.session.userInfo);
+        const providerParams = (_b = (_a = state2.config) == null ? void 0 : _a.providers) == null ? void 0 : _b[state2.session.provider];
+        if (state2.session.userInfo) {
+          const decoded = jwt_decode_esm_default(state2.session.userInfo);
           return ((_c = providerParams == null ? void 0 : providerParams.userInfoParser) == null ? void 0 : _c.call(providerParams, decoded)) || decoded;
         } else if (providerParams == null ? void 0 : providerParams.userInfoUrl) {
           const resp = await fetch(providerParams.userInfoUrl, {
             headers: {
-              Authorization: `${state.session.tokenType} ${state.session.accessToken}`
+              Authorization: `${state2.session.tokenType} ${state2.session.accessToken}`
             }
           });
           if (resp.status !== 200) {
@@ -222,8 +346,10 @@
         }
         throw new Error("No way to get user info");
       }
-      function deleteSession() {
-        state.session = void 0;
+      async function deleteSession() {
+        const state2 = await getState();
+        state2.session = void 0;
+        saveState();
       }
       var operations = {
         getCsrfToken,
@@ -231,23 +357,33 @@
         getUserData,
         deleteSession
       };
-      function messageListener(event) {
+      async function messageListener(event) {
+        var _a, _b;
+        log("message", event.data.type, event.data.fnName);
         if (event.data.type === "call") {
           if (event.data.fnName in operations) {
             const fn = operations[event.data.fnName];
-            const result = fn(...event.data.options);
-            event.ports[0].postMessage({ key: event.data.caller, result });
+            try {
+              const result = await fn(...event.data.options);
+              (_a = event.source) == null ? void 0 : _a.postMessage({ key: event.data.caller, result });
+            } catch (error) {
+              (_b = event.source) == null ? void 0 : _b.postMessage({ key: event.data.caller, error: error.message });
+            }
           }
         }
       }
       var config = JSON.parse(decodeURIComponent(new URLSearchParams(location.search).get("config") || "{}"));
-      function initAuthWorker2(providers) {
-        state.config = {
+      var debug = new URLSearchParams(location.search).get("debug") === "1";
+      async function initAuthWorker2(providers) {
+        const state2 = await getState();
+        state2.config = {
           config,
-          providers
+          providers,
+          debug
         };
         const scope = globalThis;
-        state.providers = providers;
+        state2.providers = providers;
+        log("init", state2.config);
         scope.addEventListener("fetch", fetchListener);
         scope.addEventListener("message", messageListener);
         return () => {
@@ -290,12 +426,14 @@
         accessTokenName: "access_token",
         userInfoUrl: "https://www.googleapis.com/oauth2/v3/userinfo",
         userInfoTokenName: "id_token",
-        userInfoParser: (data) => ({
-          id: data.sub,
-          name: data.name,
-          email: data.email,
-          picture: data.picture
-        })
+        userInfoParser(data) {
+          return {
+            id: data.sub,
+            name: data.name,
+            email: data.email,
+            picture: data.picture
+          };
+        }
       };
     }
   });
