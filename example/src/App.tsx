@@ -1,47 +1,45 @@
-import { getHashParams, getLoginUrl, login as authLogin } from 'auth-worker';
-import { useCallback, useEffect, useState } from 'react';
+import { getLoginUrl, createSession, getUserData, deleteSession } from 'auth-worker';
+import { useEffect, useState } from 'react';
 import './App.css';
 import { OAUTH2_CONFIG } from './config';
 
-const scopes = ['https://www.googleapis.com/auth/userinfo.profile'];
-
 function App() {
-	const [activated, setActivated] = useState(false);
-	const login = useCallback(
-		async (code: string, state: string, expiresIn: number) => {
-			await authLogin(code, state, expiresIn);
-			// const resp = await fetch('/auth/login', {
-			// 	method: 'POST',
-			// 	body: JSON.stringify({
-			// 		code,
-			// 		state,
-			// 		expiresIn,
-			// 	}),
-			// });
-			// if (resp.status === 204) {
-			// 	setActivated(true);
-			// } else {
-			// 	console.log('response', resp.status, await resp.text());
-			// 	console.error('Login failed');
-			// }
-		},
-		[setActivated]
-	);
+	const [result, setResult] = useState<null | { name: string; picture: string }>(null);
 	useEffect(() => {
-		const params = getHashParams();
-		if (!activated && Object.keys(params).length > 0 && location.pathname === '/redirect') {
-			login(params.access_token, params.state, parseInt(params.expires_in, 10)).then(() =>
-				localStorage.setItem('activated', 'true')
-			);
-		} else if (localStorage.getItem('activated') === 'true') {
-			fetch('/auth/user-data')
-				.then((resp) => resp.json())
-				.then(console.log);
+		console.log('effect', location.pathname);
+		if (result) {
+			return;
 		}
-	}, [activated]);
+		if (location.pathname === '/redirect') {
+			createSession('google').then(
+				(userInfo) => {
+					setResult(userInfo as unknown as { name: string; picture: string });
+					// window.location.replace('/');
+				},
+				(err) => console.error(err)
+			);
+		} else {
+			getUserData().then(setResult as any, () => null);
+		}
+	});
+
+	const logout = async () => {
+		await deleteSession();
+		setResult(null);
+	};
+
 	return (
 		<div>
-			<a href={getLoginUrl(OAUTH2_CONFIG, scopes.join(), location.origin + '/redirect')}>Log in</a>
+			{result ? (
+				<div>
+					<h1>Logged in as {result.name}</h1>
+					<img src={result.picture} alt="Profile" />
+					<code>{JSON.stringify(result)}</code>
+					<button onClick={logout}>Logut</button>
+				</div>
+			) : (
+				<a href={getLoginUrl(OAUTH2_CONFIG, 'google')}>Log in</a>
+			)}
 		</div>
 	);
 }

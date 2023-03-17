@@ -1,13 +1,10 @@
-export enum Provider {
-	Google = 1,
-}
-
 export enum GrantFlow {
 	AuthorizationCode,
 	Token,
 }
 
-export enum Error {
+export enum AuthError {
 	InvalidState = 1,
 	InvalidCSRF,
+	Unauthorized,
 }

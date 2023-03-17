@@ -2,7 +2,8 @@
 	"format": ["esm", "cjs"],
 	"sourcemap": true,
 	"dts": true,
-	"entryPoints": ["src/index.ts", "src/worker.ts"],
+	"entryPoints": ["src/index.ts", "src/worker.ts", "src/providers.ts"],
 	"splitting": false,
-	"clean": true
+	"clean": true,
+	"noExternal": ["jwt-decode"]
 }
