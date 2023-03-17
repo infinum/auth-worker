@@ -281,7 +281,6 @@
             tokenType: (_i = parsedParams.get((_h = providerParams.tokenTypeName) != null ? _h : "token_type")) != null ? _i : "Bearer",
             expiresAt: Date.now() + expiresIn * 1e3
           };
-          log("state", state2);
         }
         if (providerParams.grantType === 0) {
           const accessCode = parsedParams.get((_j = providerParams.authorizationCodeParam) != null ? _j : "code");
@@ -316,7 +315,6 @@
             userInfo: response[(_p = providerParams.userInfoTokenName) != null ? _p : ""],
             expiresAt: Date.now() + expiresIn * 1e3
           };
-          log("state", state2);
         }
         saveState();
         return getUserData();
@@ -425,7 +423,6 @@
         grantType: 1,
         accessTokenName: "access_token",
         userInfoUrl: "https://www.googleapis.com/oauth2/v3/userinfo",
-        userInfoTokenName: "id_token",
         userInfoParser(data) {
           return {
             id: data.sub,

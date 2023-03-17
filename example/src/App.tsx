@@ -7,15 +7,18 @@ function App() {
 	const [result, setResult] = useState<null | { name: string; picture: string }>(null);
 	useEffect(() => {
 		console.log('effect', location.pathname);
+		if (result) {
+			return;
+		}
 		if (location.pathname === '/redirect') {
 			createSession('google').then(
 				(userInfo) => {
 					setResult(userInfo as unknown as { name: string; picture: string });
-					window.location.replace('/');
+					// window.location.replace('/');
 				},
 				(err) => console.error(err)
 			);
-		} else if (!result) {
+		} else {
 			getUserData().then(setResult as any, () => null);
 		}
 	});

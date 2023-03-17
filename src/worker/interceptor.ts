@@ -52,13 +52,14 @@ export async function refreshToken(): Promise<void> {
 
 export async function fetchWithCredentials(request: Request): Promise<Response> {
 	const state = await getState();
+	const unauthorized = generateResponse({ error: AuthError.Unauthorized }, 401);
 	if (!state.session) {
-		return generateResponse({ error: AuthError.Unauthorized }, 401);
+		return unauthorized;
 	} else if (state.session.expiresAt < Date.now()) {
 		try {
 			await refreshToken();
 		} catch {
-			return generateResponse({ error: AuthError.Unauthorized }, 401);
+			return unauthorized;
 		}
 	}
 
@@ -75,25 +76,24 @@ export async function fetchWithCredentials(request: Request): Promise<Response> 
 		try {
 			await refreshToken();
 		} catch {
-			return generateResponse({ error: AuthError.Unauthorized }, 401);
+			return unauthorized;
 		}
 	}
 	return response;
 }
 
 export async function fetchListener(event: FetchEvent) {
-	if (event.request.method !== 'GET') {
-		const csrf = event.request.headers.get('X-CSRF-Token');
-		if (!csrf || !(await checkCsrfToken(csrf))) {
-			return event.respondWith(generateResponse({ error: AuthError.InvalidCSRF }, 400));
-		}
-	}
+	const useAuth = event.request.headers.get('X-Use-Auth');
+	const csrf = event.request.headers.get('X-CSRF-Token');
 
-	if (event.request.headers.get('X-Use-Auth')) {
-		log('fetch', event.request.method, event.request.url, {
-			csrf: Boolean(event.request.headers.get('X-CSRF-Token')),
-			auth: Boolean(event.request.headers.get('X-Use-Auth')),
-		});
+	if (useAuth) {
+		if (event.request.method !== 'GET') {
+			if (!csrf || !(await checkCsrfToken(csrf))) {
+				return event.respondWith(generateResponse({ error: AuthError.InvalidCSRF }, 400));
+			}
+		}
+
+		log('fetch', event.request.method, event.request.url, { csrf: Boolean(csrf), auth: Boolean(useAuth) });
 		return event.respondWith(fetchWithCredentials(event.request));
 	}
 }

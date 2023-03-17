@@ -38,7 +38,6 @@ export async function createSession(params: string, provider: string, localState
 			tokenType: parsedParams.get(providerParams.tokenTypeName ?? 'token_type') ?? 'Bearer',
 			expiresAt: Date.now() + expiresIn * 1000,
 		};
-		log('state', state);
 	}
 
 	if (providerParams.grantType === GrantFlow.AuthorizationCode) {
@@ -79,7 +78,6 @@ export async function createSession(params: string, provider: string, localState
 			userInfo: response[providerParams.userInfoTokenName ?? ''],
 			expiresAt: Date.now() + expiresIn * 1000,
 		};
-		log('state', state);
 	}
 
 	saveState();

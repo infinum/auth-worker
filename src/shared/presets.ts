@@ -6,7 +6,6 @@ export const google: IProvider = {
 	grantType: GrantFlow.Token,
 	accessTokenName: 'access_token',
 	userInfoUrl: 'https://www.googleapis.com/oauth2/v3/userinfo',
-	userInfoTokenName: 'id_token',
 	userInfoParser(data: Record<string, unknown>) {
 		return {
 			id: data.sub,
