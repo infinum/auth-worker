@@ -97,11 +97,18 @@
         }
         return providerOptions;
       };
-      function getRandom() {
+      function getRandom(length = 32) {
+        let str = "";
         if ("crypto" in globalThis && "randomUUID" in globalThis.crypto) {
-          return globalThis.crypto.randomUUID();
+          while (str.length < length) {
+            str += globalThis.crypto.randomUUID().replace(/-/g, "");
+          }
+        } else {
+          while (str.length < length) {
+            str += Math.random().toString(36).slice(2);
+          }
         }
-        return Math.random().toString(36).slice(2);
+        return str.slice(0, length);
       }
       async function getCsrfToken() {
         const state2 = await getState();
@@ -158,13 +165,14 @@
       }
       async function fetchWithCredentials(request) {
         const state2 = await getState();
+        const unauthorized = generateResponse({ error: 3 }, 401);
         if (!state2.session) {
-          return generateResponse({ error: 3 }, 401);
+          return unauthorized;
         } else if (state2.session.expiresAt < Date.now()) {
           try {
             await refreshToken();
           } catch {
-            return generateResponse({ error: 3 }, 401);
+            return unauthorized;
           }
         }
         const updatedRequest = new Request(request, {
@@ -180,23 +188,21 @@
           try {
             await refreshToken();
           } catch {
-            return generateResponse({ error: 3 }, 401);
+            return unauthorized;
           }
         }
         return response;
       }
       async function fetchListener(event) {
-        if (event.request.method !== "GET") {
-          const csrf = event.request.headers.get("X-CSRF-Token");
-          if (!csrf || !await checkCsrfToken(csrf)) {
-            return event.respondWith(generateResponse({ error: 2 }, 400));
+        const useAuth = event.request.headers.get("X-Use-Auth");
+        const csrf = event.request.headers.get("X-CSRF-Token");
+        if (useAuth) {
+          if (event.request.method !== "GET") {
+            if (!csrf || !await checkCsrfToken(csrf)) {
+              return event.respondWith(generateResponse({ error: 2 }, 400));
+            }
           }
-        }
-        if (event.request.headers.get("X-Use-Auth")) {
-          log("fetch", event.request.method, event.request.url, {
-            csrf: Boolean(event.request.headers.get("X-CSRF-Token")),
-            auth: Boolean(event.request.headers.get("X-Use-Auth"))
-          });
+          log("fetch", event.request.method, event.request.url, { csrf: Boolean(csrf), auth: Boolean(useAuth) });
           return event.respondWith(fetchWithCredentials(event.request));
         }
       }
@@ -252,10 +258,10 @@
       }
       n.prototype = new Error(), n.prototype.name = "InvalidTokenError";
       var jwt_decode_esm_default = o;
-      async function createSession(params, provider, localState) {
+      async function createSession(params2, provider, localState) {
         var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p;
         const state2 = await getState();
-        const parsedParams = new URLSearchParams(params);
+        const parsedParams = new URLSearchParams(params2);
         if (!state2.config) {
           throw new Error("No config found");
         }
@@ -329,7 +335,10 @@
         const providerParams = (_b = (_a = state2.config) == null ? void 0 : _a.providers) == null ? void 0 : _b[state2.session.provider];
         if (state2.session.userInfo) {
           const decoded = jwt_decode_esm_default(state2.session.userInfo);
-          return ((_c = providerParams == null ? void 0 : providerParams.userInfoParser) == null ? void 0 : _c.call(providerParams, decoded)) || decoded;
+          return {
+            provider: state2.session.provider,
+            data: ((_c = providerParams == null ? void 0 : providerParams.userInfoParser) == null ? void 0 : _c.call(providerParams, decoded)) || decoded
+          };
         } else if (providerParams == null ? void 0 : providerParams.userInfoUrl) {
           const resp = await fetch(providerParams.userInfoUrl, {
             headers: {
@@ -340,7 +349,10 @@
             throw new Error("Could not get user info");
           }
           const response = await resp.json();
-          return ((_d = providerParams == null ? void 0 : providerParams.userInfoParser) == null ? void 0 : _d.call(providerParams, response)) || response;
+          return {
+            data: ((_d = providerParams == null ? void 0 : providerParams.userInfoParser) == null ? void 0 : _d.call(providerParams, response)) || response,
+            provider: state2.session.provider
+          };
         }
         throw new Error("No way to get user info");
       }
@@ -370,17 +382,15 @@
           }
         }
       }
-      var config = JSON.parse(decodeURIComponent(new URLSearchParams(location.search).get("config") || "{}"));
-      var debug = new URLSearchParams(location.search).get("debug") === "1";
+      var params = new URLSearchParams(location.search);
+      var config = JSON.parse(decodeURIComponent(params.get("config") || "{}"));
+      var debug = params.get("debug") === "1";
       async function initAuthWorker2(providers) {
         const state2 = await getState();
-        state2.config = {
-          config,
-          providers,
-          debug
-        };
-        const scope = globalThis;
+        state2.config = { config, providers, debug };
         state2.providers = providers;
+        saveState();
+        const scope = globalThis;
         log("init", state2.config);
         scope.addEventListener("fetch", fetchListener);
         scope.addEventListener("message", messageListener);
@@ -415,7 +425,9 @@
       var __toCommonJS = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
       var providers_exports = {};
       __export(providers_exports, {
-        google: () => google2
+        facebook: () => facebook2,
+        google: () => google2,
+        twitter: () => twitter2
       });
       module.exports = __toCommonJS(providers_exports);
       var google2 = {
@@ -432,6 +444,37 @@
           };
         }
       };
+      var facebook2 = {
+        loginUrl: "https://www.facebook.com/v9.0/dialog/oauth",
+        grantType: 1,
+        accessTokenName: "access_token",
+        userInfoUrl: "https://graph.facebook.com/v9.0/me",
+        userInfoParser(data) {
+          return {
+            id: data.id,
+            name: data.name,
+            email: data.email,
+            picture: data.picture
+          };
+        }
+      };
+      var twitter2 = {
+        loginUrl: "https://twitter.com/i/oauth2/authorize",
+        tokenUrl: "https://api.twitter.com/oauth/access_token",
+        grantType: 0,
+        authorizationCodeParam: "oauth_verifier",
+        accessTokenName: "oauth_token",
+        refreshTokenName: "oauth_token_secret",
+        userInfoUrl: "https://api.twitter.com/2/users/me?user.fields=profile_image_url",
+        userInfoParser(data) {
+          return {
+            id: data.id,
+            name: data.name,
+            email: data.email,
+            picture: data.profile_image_url_https
+          };
+        }
+      };
     }
   });
 
@@ -444,6 +487,6 @@
   addEventListener("activate", (event) => {
     event.waitUntil(clients.claim());
   });
-  (0, import_worker.initAuthWorker)({ google: import_providers.google });
+  (0, import_worker.initAuthWorker)({ google: import_providers.google, facebook: import_providers.facebook, twitter: import_providers.twitter });
 })();
 //# sourceMappingURL=service-worker.global.js.map

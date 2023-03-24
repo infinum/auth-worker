@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-ignore
 import { initAuthWorker } from 'auth-worker/worker';
-import { google } from 'auth-worker/providers';
+import { google, facebook, twitter } from 'auth-worker/providers';
 
 addEventListener('install', () => {
 	// @ts-ignore
@@ -13,4 +13,4 @@ addEventListener('activate', (event) => {
 	event.waitUntil(clients.claim());
 });
 
-initAuthWorker({ google });
+initAuthWorker({ google, facebook, twitter });

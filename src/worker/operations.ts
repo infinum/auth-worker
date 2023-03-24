@@ -1,4 +1,5 @@
 import jwtDecode from 'jwt-decode';
+import { IUserData } from '../interfaces/IUserData';
 import { GrantFlow } from '../shared/enums';
 import { getState, saveState } from './state';
 import { log } from './utils';
@@ -84,7 +85,7 @@ export async function createSession(params: string, provider: string, localState
 	return getUserData();
 }
 
-export async function getUserData() {
+export async function getUserData(): Promise<IUserData> {
 	const state = await getState();
 	if (!state.session) {
 		log('state', state);
@@ -94,7 +95,10 @@ export async function getUserData() {
 	const providerParams = state.config?.providers?.[state.session.provider];
 	if (state.session.userInfo) {
 		const decoded: Record<string, unknown> = jwtDecode(state.session.userInfo);
-		return providerParams?.userInfoParser?.(decoded) || decoded;
+		return {
+			provider: state.session.provider,
+			data: (providerParams?.userInfoParser?.(decoded) || decoded) as Record<string, unknown>,
+		};
 	} else if (providerParams?.userInfoUrl) {
 		const resp = await fetch(providerParams.userInfoUrl, {
 			headers: {
@@ -105,7 +109,10 @@ export async function getUserData() {
 			throw new Error('Could not get user info');
 		}
 		const response = await resp.json();
-		return providerParams?.userInfoParser?.(response) || response;
+		return {
+			data: (providerParams?.userInfoParser?.(response) || response) as Record<string, unknown>,
+			provider: state.session.provider,
+		};
 	}
 
 	throw new Error('No way to get user info');
