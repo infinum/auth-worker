@@ -1,4 +1,7 @@
+import { sha256 } from './sha256';
 import { getRandom } from './utils';
+
+const PKCE_PARAM_NAME = 'auth-worker/pkce';
 
 interface IPKCE {
 	codeVerifier: string;
@@ -6,22 +9,38 @@ interface IPKCE {
 	codeChallengeMethod: 'S256' | 'plain';
 }
 
-export async function generate(): Promise<IPKCE> {
-	const plain = getRandom(128);
+function arrayBufferToHex(arrayBuffer: ArrayBuffer): string {
+	return btoa(
+		Array.from(arrayBuffer as Uint8Array)
+			.map((x: number) => String.fromCharCode(x))
+			.join('')
+	)
+		.replace(/\//g, '_')
+		.replace(/\+/g, '-')
+		.replace(/=/g, '');
+}
 
-	if ('crypto' in globalThis && 'subtle' in globalThis.crypto) {
-		const sha256 = globalThis.crypto.subtle.digest('SHA-256', new TextEncoder().encode(plain));
-
-		return {
-			codeVerifier: plain,
-			codeChallenge: String(sha256),
-			codeChallengeMethod: 'S256',
-		};
-	} else {
-		return {
-			codeVerifier: plain,
-			codeChallenge: plain,
-			codeChallengeMethod: 'plain',
-		};
+export function getPkceVerifier(provider: string): string {
+	const param = PKCE_PARAM_NAME + '/' + provider;
+	if (!localStorage.getItem(param)) {
+		localStorage.setItem(param, getRandom(128));
 	}
+
+	return localStorage.getItem(param) as string;
+}
+
+export function generatePKCE(provider: string): IPKCE {
+	const plain = getPkceVerifier(provider);
+	const hash = sha256(plain);
+
+	return {
+		codeVerifier: plain,
+		codeChallenge: arrayBufferToHex(hash),
+		codeChallengeMethod: 'S256',
+	};
+}
+
+export function deletePkce(provider: string): void {
+	const param = PKCE_PARAM_NAME + '/' + provider;
+	localStorage.removeItem(param);
 }

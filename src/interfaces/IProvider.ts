@@ -21,7 +21,7 @@ interface ITokenPreset extends IBasePreset {
 
 interface ICodePreset extends IBasePreset {
 	tokenUrl: string;
-	grantType: GrantFlow.AuthorizationCode;
+	grantType: GrantFlow.AuthorizationCode | GrantFlow.PKCE;
 }
 
 export type IProvider = ICodePreset | ITokenPreset;

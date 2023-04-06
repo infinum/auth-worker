@@ -41,7 +41,7 @@ export const getProviderParams = async (): Promise<IProvider> => {
 	}
 	const providerParams = state.config?.providers?.[state.session?.provider];
 	if (!providerParams) {
-		throw new Error('No provider params found');
+		throw new Error('No provider params found (getProviderParams)');
 	}
 	return providerParams;
 };

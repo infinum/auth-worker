@@ -4,7 +4,7 @@ import { GrantFlow } from '../shared/enums';
 import { getState, saveState } from './state';
 import { log } from './utils';
 
-export async function createSession(params: string, provider: string, localState: string) {
+export async function createSession(params: string, provider: string, localState: string, host: string, pkce?: string) {
 	const state = await getState();
 	const parsedParams = new URLSearchParams(params);
 
@@ -16,11 +16,18 @@ export async function createSession(params: string, provider: string, localState
 	const providerOptions = state.config.config?.[provider];
 
 	if (!providerParams) {
-		throw new Error('No provider params found');
+		throw new Error('No provider params found (createSession)');
 	}
 
 	const stateParam = parsedParams.get(providerParams.stateParam ?? 'state');
 	if (stateParam !== localState) {
+		console.log(
+			'State mismatch',
+			stateParam,
+			localState,
+			providerParams.stateParam ?? 'state',
+			Array.from(parsedParams.keys())
+		);
 		throw new Error('Invalid state');
 	}
 
@@ -41,7 +48,7 @@ export async function createSession(params: string, provider: string, localState
 		};
 	}
 
-	if (providerParams.grantType === GrantFlow.AuthorizationCode) {
+	if (providerParams.grantType === GrantFlow.AuthorizationCode || providerParams.grantType === GrantFlow.PKCE) {
 		const accessCode = parsedParams.get(providerParams.authorizationCodeParam ?? 'code');
 		if (!accessCode) {
 			throw new Error('No access code found');
@@ -55,6 +62,8 @@ export async function createSession(params: string, provider: string, localState
 				client_id: providerOptions.clientId,
 				grant_type: 'authorization_code',
 				code: accessCode,
+				code_verifier: pkce ?? '',
+				redirect_uri: host + providerOptions.redirectUrl,
 			}),
 		});
 
@@ -75,7 +84,7 @@ export async function createSession(params: string, provider: string, localState
 			provider,
 			accessToken,
 			tokenType: response[providerParams.tokenTypeName ?? 'token_type'] ?? 'Bearer',
-			refreshToken: response[providerParams.refreshTokenName ?? ''],
+			refreshToken: response[providerParams.refreshTokenName ?? 'refresh_token'],
 			userInfo: response[providerParams.userInfoTokenName ?? ''],
 			expiresAt: Date.now() + expiresIn * 1000,
 		};
