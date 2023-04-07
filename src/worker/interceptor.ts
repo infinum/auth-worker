@@ -25,12 +25,13 @@ export async function refreshToken(): Promise<void> {
 		},
 		body: new URLSearchParams({
 			client_id: providerOptions.clientId,
-			grant_type: 'refreshToken',
-			refreshToken: state.session.refreshToken,
+			grant_type: 'refresh_token',
+			refresh_token: state.session.refreshToken,
 		}),
 	});
 
 	if (resp.status !== 200) {
+		console.log(await resp.text());
 		throw new Error('Could not refresh token');
 	}
 
@@ -63,14 +64,11 @@ export async function fetchWithCredentials(request: Request): Promise<Response> 
 		}
 	}
 
-	const updatedRequest = new Request(request, {
-		headers: {
-			...request.headers,
-			Authorization: `${state.session.tokenType} ${state.session.accessToken}`,
-			'X-CSRF-Token': undefined,
-			'X-Use-Auth': undefined,
-		},
-	});
+	const cleanHeaders = new Headers(request.headers);
+	cleanHeaders.delete('X-CSRF-Token');
+	cleanHeaders.delete('X-Use-Auth');
+	cleanHeaders.append('Authorization', `${state.session.tokenType} ${state.session.accessToken}`);
+	const updatedRequest = new Request(request, { headers: cleanHeaders });
 	const response = await fetch(updatedRequest);
 	if (response.status === 401) {
 		try {

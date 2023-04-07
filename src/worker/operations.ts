@@ -3,6 +3,7 @@ import { IUserData } from '../interfaces/IUserData';
 import { GrantFlow } from '../shared/enums';
 import { getState, saveState } from './state';
 import { log } from './utils';
+import { fetchWithCredentials } from './interceptor';
 
 export async function createSession(params: string, provider: string, localState: string, host: string, pkce?: string) {
 	const state = await getState();
@@ -109,11 +110,8 @@ export async function getUserData(): Promise<IUserData> {
 			data: (providerParams?.userInfoParser?.(decoded) || decoded) as Record<string, unknown>,
 		};
 	} else if (providerParams?.userInfoUrl) {
-		const resp = await fetch(providerParams.userInfoUrl, {
-			headers: {
-				Authorization: `${state.session.tokenType} ${state.session.accessToken}`,
-			},
-		});
+		const request = new Request(providerParams.userInfoUrl);
+		const resp = await fetchWithCredentials(request);
 		if (resp.status !== 200) {
 			throw new Error('Could not get user info');
 		}
@@ -121,6 +119,8 @@ export async function getUserData(): Promise<IUserData> {
 		return {
 			data: (providerParams?.userInfoParser?.(response) || response) as Record<string, unknown>,
 			provider: state.session.provider,
+			expiresAt: state.session.expiresAt,
+			expiresAtDate: new Date(state.session.expiresAt),
 		};
 	}
 
