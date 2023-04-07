@@ -40,7 +40,11 @@ export function generatePKCE(provider: string): IPKCE {
 	};
 }
 
-export function deletePkce(provider: string): void {
-	const param = PKCE_PARAM_NAME + '/' + provider;
-	localStorage.removeItem(param);
+export function deletePkce(): void {
+	const keys = Array.from({ length: localStorage.length }, (_, i) => localStorage.key(i) as string);
+	keys.forEach((key) => {
+		if (key.startsWith(PKCE_PARAM_NAME + '/')) {
+			localStorage.removeItem(key);
+		}
+	});
 }

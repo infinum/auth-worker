@@ -11,7 +11,11 @@ export function getState(provider: string): string {
 	return localStorage.getItem(param) as string;
 }
 
-export function deleteState(provider: string): void {
-	const param = STATE_PARAM_NAME + '/' + provider;
-	localStorage.removeItem(param);
+export function deleteState(): void {
+	const keys = Array.from({ length: localStorage.length }, (_, i) => localStorage.key(i) as string);
+	keys.forEach((key) => {
+		if (key.startsWith(STATE_PARAM_NAME + '/')) {
+			localStorage.removeItem(key);
+		}
+	});
 }

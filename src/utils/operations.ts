@@ -23,8 +23,8 @@ export async function createSession(provider: string) {
 		window.location.origin,
 		pkce,
 	]);
-	deleteState(provider);
-	deletePkce(provider);
+	deleteState();
+	deletePkce();
 	return response;
 }
 
