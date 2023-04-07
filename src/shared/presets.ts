@@ -22,7 +22,6 @@ export const facebook: IProvider = {
 	accessTokenName: 'access_token',
 	userInfoUrl: 'https://graph.facebook.com/v9.0/me',
 	userInfoParser(data: Record<string, unknown>) {
-		console.log('data', data);
 		return {
 			id: data.id,
 			name: data.name,

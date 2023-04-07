@@ -31,7 +31,6 @@ export async function refreshToken(): Promise<void> {
 	});
 
 	if (resp.status !== 200) {
-		console.log(await resp.text());
 		throw new Error('Could not refresh token');
 	}
 

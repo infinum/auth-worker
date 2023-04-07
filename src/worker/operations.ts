@@ -22,13 +22,6 @@ export async function createSession(params: string, provider: string, localState
 
 	const stateParam = parsedParams.get(providerParams.stateParam ?? 'state');
 	if (stateParam !== localState) {
-		console.log(
-			'State mismatch',
-			stateParam,
-			localState,
-			providerParams.stateParam ?? 'state',
-			Array.from(parsedParams.keys())
-		);
 		throw new Error('Invalid state');
 	}
 
