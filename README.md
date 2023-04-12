@@ -2,22 +2,29 @@
 
 OAuth2 Service Worker handler
 
+## Motivation
+
+When it comes to saving credentials in the browser, HttpOnly Cookies are often the preferred method as they are not vulnerable to cross-site scripting (XSS) attacks. However, when using Single Sign-On (SSO), the credentials are usually provided in the form of tokens that are intended to be sent via the Authorization header.
+
+While it may be tempting to simply store these tokens in the browser's localStorage, this can introduce security risks if any third-party code is present or if a user is able to add custom JavaScript to the application. Storing the tokens in regular Cookies may also not be the best solution as it defeats the purpose of using Cookies in the first place.
+
+This library is an implementation of the OAuth2 recommendations for [Single Page Applications](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps#section-6.4) that uses a Service Worker to store the tokens in SW cache, which is inaccessable to the main app.
+
 ## Usage
+
+This example is with Google, but the lib supports [multiple providers](#providers) out of thhe box and custom providers can also be defined.
 
 ```ts
 // index.ts
 import { loadAuthWorker } from 'auth-worker';
 
-loadAuthWorker(
-	{
-		google: {
-			clientId: 'example-client-id',
-			redirectUrl: '/redirect',
-			scopes: 'https://www.googleapis.com/auth/userinfo.profile',
-		},
+loadAuthWorker({
+	google: {
+		clientId: 'example-client-id',
+		redirectUrl: '/redirect',
+		scopes: 'https://www.googleapis.com/auth/userinfo.profile',
 	},
-	'./service-worker.js'
-);
+});
 ```
 
 ```ts
@@ -67,7 +74,7 @@ export const Redirect = () => {
 };
 ```
 
-## Configuration
+### Configuration
 
 | Option        | Type     | Description                                                                            |
 | ------------- | -------- | -------------------------------------------------------------------------------------- |
@@ -96,7 +103,7 @@ type IConfig = Record<
 
 #### `IProvider`
 
-The interface used to define a (custom) provider.
+The interface used to define a (custom) [provider](#providers).
 
 #### `IFullConfig`
 
@@ -131,12 +138,12 @@ loadAuthWorker({
 
 #### Parameters
 
-| Name          | Type      | Description                                                             |
-| ------------- | --------- | ----------------------------------------------------------------------- |
-| `providers`   | `IConfig` | The providers that should be used.                                      |
-| `workerPath?` | `string`  | The location of the service worker. Defaults to `"./service-worker.js"` |
-| `scope?`      | `string`  | The scope opf the service worker. Defaults to `"/"`                     |
-| `debug?`      | `boolean` | Whether to enable debug mode. Defaults to `false`                       |
+| Name                  | Type      | Description                                                             |
+| --------------------- | --------- | ----------------------------------------------------------------------- |
+| `config`              | `IConfig` | The providers that should be used.                                      |
+| `options.workerPath?` | `string`  | The location of the service worker. Defaults to `"./service-worker.js"` |
+| `options.scope?`      | `string`  | The scope opf the service worker. Defaults to `"/"`                     |
+| `options.debug?`      | `boolean` | Whether to enable debug mode. Defaults to `false`                       |
 
 ### `initAuthWorker`
 
