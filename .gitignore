@@ -11,3 +11,4 @@ dist
 .husky
 .vscode
 example/public/*.js*
+coverage/*
