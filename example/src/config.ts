@@ -1,14 +1,34 @@
 import { IFullConfig } from 'auth-worker';
-import { google } from 'auth-worker/providers';
-import { CLIENT_ID } from './consts';
+import { google, facebook, twitter, reddit, auth0 } from 'auth-worker/providers';
+import { GOOGLE_CLIENT_ID, FB_CLIENT_ID, TWITTER_CLIENT_ID, REDDIT_CLIENT_ID, AUTH0_CLIENT_ID } from './consts';
 
 export const OAUTH2_CONFIG: IFullConfig = {
 	config: {
 		google: {
-			clientId: CLIENT_ID,
-			redirectUrl: '/redirect',
+			clientId: GOOGLE_CLIENT_ID,
+			redirectUrl: '/redirect/google',
 			scopes: 'https://www.googleapis.com/auth/userinfo.profile',
 		},
+		facebook: {
+			clientId: FB_CLIENT_ID,
+			redirectUrl: '/redirect/facebook',
+			scopes: 'public_profile,email',
+		},
+		twitter: {
+			redirectUrl: '/redirect/twitter',
+			clientId: TWITTER_CLIENT_ID,
+			scopes: 'users.read',
+		},
+		reddit: {
+			redirectUrl: '/redirect/reddit',
+			clientId: REDDIT_CLIENT_ID,
+			scopes: 'identity',
+		},
+		auth0: {
+			redirectUrl: '/redirect/auth0',
+			clientId: AUTH0_CLIENT_ID,
+			scopes: 'openid profile email offline_access',
+		},
 	},
-	providers: { google },
+	providers: { google, facebook, twitter, reddit, auth0: auth0('dev-u8csbbr8zashh2k8.us.auth0.com') },
 } as const;

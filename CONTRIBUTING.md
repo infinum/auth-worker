@@ -14,19 +14,3 @@ If you find a bug in the source code, you can help us by [submitting an issue](h
 4. Open the example on http://localhost:5173/.
 5. In the applications tab of the devtools, under the service workers section, check the "Update on reload" checkbox.
 6. On each change, you'll need two refreshes - one to reinstall the service worker, and one to activate it.
-
-## Structure
-
-### Worker
-
-- Register
-- Interceptor
-- Refresh
-- Activate
-
-### Lib / utils
-
-- Get login URL
-- Create session
-- Get user data
-- Get CSRF token

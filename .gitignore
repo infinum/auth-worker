@@ -10,3 +10,5 @@ node_modules/
 dist
 .husky
 .vscode
+example/public/*.js*
+coverage/*

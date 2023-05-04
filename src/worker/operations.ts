@@ -1,9 +1,11 @@
 import jwtDecode from 'jwt-decode';
+import { IUserData } from '../interfaces/IUserData';
 import { GrantFlow } from '../shared/enums';
 import { getState, saveState } from './state';
 import { log } from './utils';
+import { fetchWithCredentials } from './interceptor';
 
-export async function createSession(params: string, provider: string, localState: string) {
+export async function createSession(params: string, provider: string, localState: string, host: string, pkce?: string) {
 	const state = await getState();
 	const parsedParams = new URLSearchParams(params);
 
@@ -15,7 +17,7 @@ export async function createSession(params: string, provider: string, localState
 	const providerOptions = state.config.config?.[provider];
 
 	if (!providerParams) {
-		throw new Error('No provider params found');
+		throw new Error('No provider params found (createSession)');
 	}
 
 	const stateParam = parsedParams.get(providerParams.stateParam ?? 'state');
@@ -40,7 +42,7 @@ export async function createSession(params: string, provider: string, localState
 		};
 	}
 
-	if (providerParams.grantType === GrantFlow.AuthorizationCode) {
+	if (providerParams.grantType === GrantFlow.AuthorizationCode || providerParams.grantType === GrantFlow.PKCE) {
 		const accessCode = parsedParams.get(providerParams.authorizationCodeParam ?? 'code');
 		if (!accessCode) {
 			throw new Error('No access code found');
@@ -54,6 +56,8 @@ export async function createSession(params: string, provider: string, localState
 				client_id: providerOptions.clientId,
 				grant_type: 'authorization_code',
 				code: accessCode,
+				code_verifier: pkce ?? '',
+				redirect_uri: host + providerOptions.redirectUrl,
 			}),
 		});
 
@@ -74,7 +78,7 @@ export async function createSession(params: string, provider: string, localState
 			provider,
 			accessToken,
 			tokenType: response[providerParams.tokenTypeName ?? 'token_type'] ?? 'Bearer',
-			refreshToken: response[providerParams.refreshTokenName ?? ''],
+			refreshToken: response[providerParams.refreshTokenName ?? 'refresh_token'],
 			userInfo: response[providerParams.userInfoTokenName ?? ''],
 			expiresAt: Date.now() + expiresIn * 1000,
 		};
@@ -84,7 +88,7 @@ export async function createSession(params: string, provider: string, localState
 	return getUserData();
 }
 
-export async function getUserData() {
+export async function getUserData(): Promise<IUserData> {
 	const state = await getState();
 	if (!state.session) {
 		log('state', state);
@@ -94,18 +98,23 @@ export async function getUserData() {
 	const providerParams = state.config?.providers?.[state.session.provider];
 	if (state.session.userInfo) {
 		const decoded: Record<string, unknown> = jwtDecode(state.session.userInfo);
-		return providerParams?.userInfoParser?.(decoded) || decoded;
+		return {
+			provider: state.session.provider,
+			data: (providerParams?.userInfoParser?.(decoded) || decoded) as Record<string, unknown>,
+		};
 	} else if (providerParams?.userInfoUrl) {
-		const resp = await fetch(providerParams.userInfoUrl, {
-			headers: {
-				Authorization: `${state.session.tokenType} ${state.session.accessToken}`,
-			},
-		});
+		const request = new Request(providerParams.userInfoUrl);
+		const resp = await fetchWithCredentials(request);
 		if (resp.status !== 200) {
 			throw new Error('Could not get user info');
 		}
 		const response = await resp.json();
-		return providerParams?.userInfoParser?.(response) || response;
+		return {
+			data: (providerParams?.userInfoParser?.(response) || response) as Record<string, unknown>,
+			provider: state.session.provider,
+			expiresAt: state.session.expiresAt,
+			expiresAtDate: new Date(state.session.expiresAt),
+		};
 	}
 
 	throw new Error('No way to get user info');
