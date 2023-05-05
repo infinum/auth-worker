@@ -24,7 +24,7 @@ jest.mock('../shared/pkce', () => ({
 	getPkceVerifier: jest.fn().mockReturnValue('somePkce'),
 }));
 
-describe('operatinos', () => {
+describe('utils/operations', () => {
 	afterEach(() => {
 		// Reset the mock implementation of callWorker after each test
 		jest.resetAllMocks();

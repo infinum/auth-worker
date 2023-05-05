@@ -1,6 +1,6 @@
 import { getRandom } from './utils';
 
-describe('utils', () => {
+describe('shared/utils', () => {
 	describe('getRandom', () => {
 		it('should return a random string', () => {
 			const result = getRandom();

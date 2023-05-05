@@ -1,7 +1,7 @@
 import { LocalStorageMock } from '../../test/mock/localStorage';
 import { getState, deleteState } from './storage';
 
-describe('storage', () => {
+describe('utils/storage', () => {
 	beforeAll(() => {
 		global.localStorage = new LocalStorageMock();
 	});

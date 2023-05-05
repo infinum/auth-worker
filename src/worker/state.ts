@@ -3,7 +3,7 @@ import { IFullConfig } from '../interfaces/IFullConfig';
 import { IProvider } from '../interfaces/IProvider';
 import { log } from './utils';
 
-interface IState {
+export interface IState {
 	csrf?: string;
 	config?: IFullConfig;
 	session?: {
@@ -18,6 +18,11 @@ interface IState {
 }
 
 let state: IState | null = null;
+
+// eslint-disable-next-line no-underscore-dangle
+export function __setState(newState: IState | null = null) {
+	state = newState;
+}
 
 export async function getState() {
 	if (!state) {

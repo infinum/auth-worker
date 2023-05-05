@@ -1,6 +1,6 @@
 import { auth0, facebook, google, reddit, twitter } from './presets';
 
-describe('presets', () => {
+describe('shared/presets', () => {
 	describe('userInfoParser', () => {
 		it('should work for google', () => {
 			const data = {

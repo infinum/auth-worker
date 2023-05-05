@@ -1,7 +1,7 @@
 import { LocalStorageMock } from '../../test/mock/localStorage';
 import { deletePkce, generatePKCE, getPkceVerifier } from './pkce';
 
-describe('pkce', () => {
+describe('shared/pkce', () => {
 	beforeAll(() => {
 		global.localStorage = new LocalStorageMock();
 	});

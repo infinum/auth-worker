@@ -150,13 +150,6 @@ export function sha256(data: string) {
 			reply[29] = (h7 >>> 16) & 255;
 			reply[30] = (h7 >>> 8) & 255;
 			reply[31] = h7 & 255;
-			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-			// @ts-ignore
-			reply.hex = () => {
-				let res = '';
-				reply.forEach((x) => (res += ('0' + x.toString(16)).slice(-2)));
-				return res;
-			};
 			return reply;
 		};
 	add(data);

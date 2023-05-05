@@ -1,6 +1,6 @@
 import { sha256 } from './sha256';
 
-describe('sha256', () => {
+describe('shared/sha256', () => {
 	it('should work for an empty string', () => {
 		const result = sha256('');
 		expect(result.join()).toEqual(

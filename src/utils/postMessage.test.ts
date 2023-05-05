@@ -2,7 +2,7 @@ import { callWorker } from './postMessage';
 
 type TListenerFn = (...args: Array<unknown>) => void;
 
-describe('postMessage', () => {
+describe('utils/postMessage', () => {
 	describe('callWorker', () => {
 		const mockReturnValue = 'Mock return value';
 		let isError = false;
