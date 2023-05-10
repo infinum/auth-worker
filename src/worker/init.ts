@@ -7,7 +7,7 @@ import { log } from './utils';
 
 function getConfig(data: string = location.search.slice(1)) {
 	const params = new URLSearchParams(data);
-	const config = JSON.parse(decodeURIComponent(params.get('config') || '{}')) as IConfig;
+	const config = JSON.parse(decodeURIComponent(params.get('config') ?? '{}')) as IConfig;
 	const debug = params.get('debug') === '1';
 
 	return { config, debug };
