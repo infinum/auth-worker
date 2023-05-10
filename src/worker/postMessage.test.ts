@@ -3,7 +3,7 @@ import { createSession } from './operations';
 import { messageListener } from './postMesage';
 
 jest.mock('./csrf', () => ({
-	getCsrfToken: jest.fn(() => 'csrf'),
+	getCsrfToken: jest.fn(() => Promise.resolve('csrf')),
 }));
 jest.mock('./operations', () => ({
 	createSession: jest.fn().mockRejectedValue(new Error('createSession')),
