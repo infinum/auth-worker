@@ -5,7 +5,7 @@ export function loadAuthWorker(
 	config: IConfig,
 	{ workerPath = './service-worker.js', scope = '/', debug = false }: IWorkerSettings = {}
 ) {
-	window.navigator.serviceWorker.register(
+	return window.navigator.serviceWorker.register(
 		workerPath +
 			'?' +
 			new URLSearchParams({

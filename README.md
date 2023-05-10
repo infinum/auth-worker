@@ -24,7 +24,7 @@ loadAuthWorker({
 		redirectUrl: '/redirect',
 		scopes: 'https://www.googleapis.com/auth/userinfo.profile',
 	},
-});
+}).catch(console.error);
 ```
 
 ```ts
@@ -133,7 +133,7 @@ loadAuthWorker({
 		redirectUrl: '/redirect',
 		scopes: 'https://www.googleapis.com/auth/userinfo.profile',
 	},
-});
+}).catch(console.error);
 ```
 
 #### Parameters

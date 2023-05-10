@@ -9,7 +9,7 @@ import { OAUTH2_CONFIG } from './config';
 loadAuthWorker(OAUTH2_CONFIG.config, {
 	workerPath: '/service-worker.global.js',
 	debug: true,
-});
+}).catch(console.error);
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
 	<React.StrictMode>
