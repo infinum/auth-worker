@@ -84,7 +84,7 @@ export async function createSession(params: string, provider: string, localState
 		};
 	}
 
-	saveState(state);
+	await saveState(state);
 	return getUserData();
 }
 
@@ -123,5 +123,5 @@ export async function getUserData(): Promise<IUserData> {
 export async function deleteSession() {
 	const state = await getState();
 	state.session = undefined;
-	saveState(state);
+	await saveState(state);
 }

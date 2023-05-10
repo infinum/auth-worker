@@ -47,7 +47,7 @@ export async function refreshToken(): Promise<void> {
 	if (providerParams.userInfoTokenName) {
 		state.session.userInfo = response[providerParams.userInfoTokenName];
 	}
-	saveState(state);
+	await saveState(state);
 }
 
 export async function fetchWithCredentials(request: Request): Promise<Response> {
