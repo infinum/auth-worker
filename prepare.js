@@ -1,7 +1,7 @@
 const pack = require('./package.json');
 const fs = require('fs');
 
-const package = {
+const distPack = {
 	name: pack.name,
 	version: pack.version,
 	description: pack.description,
@@ -18,6 +18,6 @@ const package = {
 	dependencies: pack.dependencies,
 };
 
-fs.writeFileSync('./dist/package.json', JSON.stringify(package, null, 2));
+fs.writeFileSync('./dist/package.json', JSON.stringify(distPack, null, 2));
 fs.copyFileSync('./README.md', './dist/README.md');
 fs.copyFileSync('./LICENSE', './dist/LICENSE');
