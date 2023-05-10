@@ -88,7 +88,7 @@ describe('worker/operations', () => {
 				accessToken: 'mockAccess',
 				tokenType: 'Bearer',
 				refreshToken: undefined,
-				expiresAt: 12 * 1000 + Date.now(),
+				expiresAt: expect.any(Number),
 				userInfo: 'mockUserInfo',
 			});
 
@@ -96,6 +96,249 @@ describe('worker/operations', () => {
 				provider: 'mockProvider',
 				data: 'mockUserInfo',
 			});
+		});
+
+		it('shuld fail for token flow if no access token was received', async () => {
+			const state = {
+				session: {
+					provider: 'mockProvider',
+				},
+				config: {
+					providers: {
+						mockProvider: {
+							stateParam: 'state_param',
+							grantType: GrantFlow.Token,
+							userInfoTokenName: 'user',
+						},
+					},
+					config: {
+						mockProvider: {},
+					},
+				},
+			};
+
+			(getState as jest.Mock).mockResolvedValue(state);
+
+			await expect(
+				createSession('state_param=123&expiresIn=12&user=mockUserInfo&stuff=test', 'mockProvider', '123', 'example.com')
+			).rejects.toThrow('No access token found');
+		});
+
+		it('should work for the authorization code flow', async () => {
+			const state = {
+				session: {
+					provider: 'mockProvider',
+				},
+				config: {
+					providers: {
+						mockProvider: {
+							stateParam: 'state_param',
+							grantType: GrantFlow.AuthorizationCode,
+							authorizationCodeParam: 'authCode',
+							userInfoTokenName: 'user',
+						},
+					},
+					config: {
+						mockProvider: {
+							redirectUrl: '/test',
+							clientId: '123',
+						},
+					},
+				},
+			};
+
+			(getState as jest.Mock).mockResolvedValue(state);
+
+			(fetch as jest.Mock).mockResolvedValueOnce(
+				new Response('{"access_token": "mockAccess", "user": "mockUserInfo"}', { status: 200 })
+			);
+
+			const result = await createSession(
+				'state_param=123&authCode=abc&stuff=test',
+				'mockProvider',
+				'123',
+				'example.com'
+			);
+
+			expect(state.session).toEqual({
+				provider: 'mockProvider',
+				accessToken: 'mockAccess',
+				tokenType: 'Bearer',
+				refreshToken: undefined,
+				expiresAt: expect.any(Number),
+				userInfo: 'mockUserInfo',
+			});
+
+			expect(result).toEqual({
+				provider: 'mockProvider',
+				data: 'mockUserInfo',
+			});
+
+			const response = (fetch as jest.Mock).mock.calls[0][1] as RequestInit;
+			const params = response.body as URLSearchParams;
+			expect(response.method).toBe('POST');
+			expect(response.headers).toEqual({
+				'Content-Type': 'application/x-www-form-urlencoded',
+			});
+			expect(params.get('grant_type')).toBe('authorization_code');
+			expect(params.get('code')).toBe('abc');
+			expect(params.get('redirect_uri')).toBe('example.com/test');
+			expect(params.get('client_id')).toBe('123');
+		});
+
+		it('should fail for the authorization code flow if the token was not returned', async () => {
+			const state = {
+				session: {
+					provider: 'mockProvider',
+				},
+				config: {
+					providers: {
+						mockProvider: {
+							stateParam: 'state_param',
+							grantType: GrantFlow.AuthorizationCode,
+							authorizationCodeParam: 'authCode',
+							userInfoTokenName: 'user',
+							accessTokenName: 'access',
+						},
+					},
+					config: {
+						mockProvider: {},
+					},
+				},
+			};
+
+			(getState as jest.Mock).mockResolvedValue(state);
+
+			(fetch as jest.Mock).mockResolvedValueOnce(new Response('{"user": "mockUserInfo"}', { status: 200 }));
+
+			await expect(
+				createSession('state_param=123&authCode=abc&stuff=test', 'mockProvider', '123', 'example.com')
+			).rejects.toThrow('No access token found');
+		});
+
+		it('should fail for the authorization code flow if the server returns an error', async () => {
+			const state = {
+				session: {
+					provider: 'mockProvider',
+				},
+				config: {
+					providers: {
+						mockProvider: {
+							stateParam: 'state_param',
+							grantType: GrantFlow.AuthorizationCode,
+							authorizationCodeParam: 'authCode',
+							userInfoTokenName: 'user',
+						},
+					},
+					config: {
+						mockProvider: {},
+					},
+				},
+			};
+
+			(getState as jest.Mock).mockResolvedValue(state);
+
+			(fetch as jest.Mock).mockResolvedValueOnce(new Response('someError', { status: 403 }));
+
+			await expect(
+				createSession('state_param=123&authCode=abc&stuff=test', 'mockProvider', '123', 'example.com')
+			).rejects.toThrow('Could not get token');
+		});
+
+		it('should fail for the authorization code flow if no code was returned', async () => {
+			const state = {
+				session: {
+					provider: 'mockProvider',
+				},
+				config: {
+					providers: {
+						mockProvider: {
+							stateParam: 'state_param',
+							grantType: GrantFlow.AuthorizationCode,
+							userInfoTokenName: 'user',
+						},
+					},
+					config: {
+						mockProvider: {},
+					},
+				},
+			};
+
+			(getState as jest.Mock).mockResolvedValue(state);
+
+			await expect(createSession('state_param=123&stuff=test', 'mockProvider', '123', 'example.com')).rejects.toThrow(
+				'No access code found'
+			);
+		});
+
+		it('should work for the pkce flow', async () => {
+			const state = {
+				session: {
+					provider: 'mockProvider',
+				},
+				config: {
+					providers: {
+						mockProvider: {
+							stateParam: 'state_param',
+							grantType: GrantFlow.PKCE,
+							authorizationCodeParam: 'authCode',
+							userInfoTokenName: 'user',
+							expiresInName: 'expiresIn',
+							tokenTypeName: 'tokenType',
+							refreshTokenName: 'refreshToken',
+						},
+					},
+					config: {
+						mockProvider: {
+							redirectUrl: '/test',
+							clientId: '123',
+						},
+					},
+				},
+			};
+
+			(getState as jest.Mock).mockResolvedValue(state);
+
+			(fetch as jest.Mock).mockResolvedValueOnce(
+				new Response(
+					'{"access_token": "mockAccess", "user": "mockUserInfo", "expiresIn": 321, "tokenType": "Foo", "refreshToken": "mockRefresh"}',
+					{ status: 200 }
+				)
+			);
+
+			const result = await createSession(
+				'state_param=123&authCode=abc&stuff=test',
+				'mockProvider',
+				'123',
+				'example.com',
+				'mockCodeVerifier'
+			);
+
+			expect(state.session).toEqual({
+				provider: 'mockProvider',
+				accessToken: 'mockAccess',
+				tokenType: 'Foo',
+				refreshToken: 'mockRefresh',
+				expiresAt: expect.any(Number),
+				userInfo: 'mockUserInfo',
+			});
+
+			expect(result).toEqual({
+				provider: 'mockProvider',
+				data: 'mockUserInfo',
+			});
+
+			const response = (fetch as jest.Mock).mock.calls[0][1] as RequestInit;
+			const params = response.body as URLSearchParams;
+			expect(response.method).toBe('POST');
+			expect(response.headers).toEqual({
+				'Content-Type': 'application/x-www-form-urlencoded',
+			});
+			expect(params.get('grant_type')).toBe('authorization_code');
+			expect(params.get('code')).toBe('abc');
+			expect(params.get('redirect_uri')).toBe('example.com/test');
+			expect(params.get('client_id')).toBe('123');
+			expect(params.get('code_verifier')).toBe('mockCodeVerifier');
 		});
 	});
 
