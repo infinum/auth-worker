@@ -90,7 +90,7 @@ export async function fetchListener(event: FetchEvent) {
 			}
 		}
 
-		log('fetch', event.request.method, event.request.url, { csrf: Boolean(csrf), auth: Boolean(useAuth) });
+		await log('fetch', event.request.method, event.request.url, { csrf: Boolean(csrf), auth: Boolean(useAuth) });
 		return event.respondWith(fetchWithCredentials(event.request));
 	}
 }

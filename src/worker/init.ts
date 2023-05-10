@@ -22,7 +22,7 @@ export async function initAuthWorker(providers: Record<string, IProvider>, urlCo
 
 	const scope = globalThis as unknown as ServiceWorkerGlobalScope;
 
-	log('init', state.config);
+	await log('init', state.config);
 
 	scope.addEventListener('fetch', fetchListener);
 	scope.addEventListener('message', messageListener);

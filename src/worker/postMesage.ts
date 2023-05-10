@@ -10,7 +10,7 @@ const operations = {
 } as const;
 
 export function messageListener(event: ExtendableMessageEvent): void {
-	log('message', event.data.type, event.data.fnName);
+	log('message', event.data.type, event.data.fnName).catch(() => null);
 	if (event.data.type === 'call') {
 		if (event.data.fnName in operations) {
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
