@@ -263,4 +263,3 @@ Maintained and sponsored by
     </picture>
   </a>
 </p>
-```
