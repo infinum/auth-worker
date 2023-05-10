@@ -11,7 +11,7 @@ import { GrantFlow } from '../shared/enums';
 describe('utils/login', () => {
 	describe('getLoginUrl', () => {
 		beforeAll(() => {
-			global.localStorage = new LocalStorageMock();
+			globalThis.localStorage = new LocalStorageMock();
 		});
 
 		beforeEach(() => {
