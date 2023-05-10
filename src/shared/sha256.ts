@@ -94,8 +94,8 @@ export function sha256(data: string) {
 			if (typeof data === 'string') {
 				data = typeof TextEncoder === 'undefined' ? Buffer.from(data) : new TextEncoder().encode(data);
 			}
-			for (let i = 0; i < data.length; i++) {
-				buf[bp++] = data[i];
+			for (const item of data) {
+				buf[bp++] = item;
 				if (bp === 64) process();
 			}
 			tsz += data.length;
