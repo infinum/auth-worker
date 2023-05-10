@@ -8,13 +8,13 @@ export function getHashParams(): Record<string, string> {
 	);
 }
 
-export function log(...args: Array<unknown>): void {
-	getState().then(
-		(state) => {
-			if (state.config?.debug) {
-				console.log('[auth-worker]', ...args);
-			}
-		},
-		() => null
-	);
+export async function log(...args: Array<unknown>): Promise<void> {
+	try {
+		const state = await getState();
+		if (state.config?.debug) {
+			console.log('[auth-worker]', ...args);
+		}
+	} catch {
+		return undefined;
+	}
 }
