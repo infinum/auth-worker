@@ -19,3 +19,5 @@ const package = {
 };
 
 fs.writeFileSync('./dist/package.json', JSON.stringify(package, null, 2));
+fs.copyFileSync('./README.md', './dist/README.md');
+fs.copyFileSync('./LICENSE', './dist/LICENSE');
