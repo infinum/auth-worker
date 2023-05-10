@@ -25,29 +25,35 @@ describe('worker/utils', () => {
 	});
 
 	describe('log', () => {
-		let consoleSpy: jest.SpyInstance;
+		const originalConsole = console;
 
 		beforeEach(() => {
-			consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => null);
-			jest.resetAllMocks();
+			globalThis.console = {
+				...console,
+				log: jest.fn(),
+			};
+		});
+
+		afterEach(() => {
+			globalThis.console = originalConsole;
 		});
 
 		it('should log to the console if debug mode is enabled', async () => {
 			(getState as jest.Mock).mockResolvedValueOnce({ config: { debug: true } });
 			await log('hello', 'world');
-			expect(consoleSpy).toHaveBeenCalledWith('[auth-worker]', 'hello', 'world');
+			expect(console.log).toHaveBeenCalledWith('[auth-worker]', 'hello', 'world');
 		});
 
 		it('should not log to the console if debug mode is disabled', async () => {
 			(getState as jest.Mock).mockResolvedValueOnce({ config: { debug: false } });
 			await log('hello', 'world');
-			expect(consoleSpy).not.toHaveBeenCalled();
+			expect(console.log).not.toHaveBeenCalled();
 		});
 
 		it('should not log to the console if an error occurs while getting the state', async () => {
 			(getState as jest.Mock).mockRejectedValueOnce(new Error('Failed to get state'));
 			await log('hello', 'world');
-			expect(consoleSpy).not.toHaveBeenCalled();
+			expect(console.log).not.toHaveBeenCalled();
 		});
 	});
 });
