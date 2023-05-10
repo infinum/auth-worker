@@ -10,6 +10,7 @@ const operations = {
 } as const;
 
 export function messageListener(event: ExtendableMessageEvent): void {
+	if (event.origin !== location.origin) return;
 	log('message', event.data.type, event.data.fnName).catch(() => null);
 	if (event.data.type === 'call') {
 		if (event.data.fnName in operations) {

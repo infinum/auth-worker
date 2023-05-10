@@ -15,6 +15,13 @@ describe('utils/postMessage', () => {
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		// @ts-ignore
 		globalThis.navigator = navigator;
+
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		// @ts-ignore
+		delete globalThis.location;
+		globalThis.location = {
+			origin: 'https://example.com',
+		} as unknown as Location;
 		const listeners: Array<TListenerFn> = [];
 
 		beforeEach(() => {
@@ -27,6 +34,7 @@ describe('utils/postMessage', () => {
 									key: 'somethingElse',
 									error: 'Other messages should be ignorred',
 								},
+								origin: location.origin,
 							})
 						);
 						setTimeout(() => {
@@ -37,6 +45,7 @@ describe('utils/postMessage', () => {
 										result: isError ? undefined : mockReturnValue,
 										error: isError ? 'Mock error' : undefined,
 									},
+									origin: location.origin,
 								})
 							);
 						}, delay);

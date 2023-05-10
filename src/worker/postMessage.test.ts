@@ -1,3 +1,7 @@
+/**
+ * @jest-environment jsdom
+ */
+
 import { getCsrfToken } from './csrf';
 import { createSession } from './operations';
 import { messageListener } from './postMesage';
@@ -30,6 +34,7 @@ describe('worker/postMessage', () => {
 					caller: 'test',
 				},
 				source: { postMessage },
+				origin: location.origin,
 			} as unknown as ExtendableMessageEvent);
 
 			await sleep();
@@ -48,11 +53,31 @@ describe('worker/postMessage', () => {
 					caller: 'test',
 				},
 				source: { postMessage },
+				origin: location.origin,
 			} as unknown as ExtendableMessageEvent);
 
 			await sleep();
 			expect(createSession).toHaveBeenCalledWith(...options);
 			expect(postMessage).toHaveBeenCalledWith({ key: 'test', error: 'createSession' });
+		});
+
+		it("should ignore if the origin doesn't match", async () => {
+			const postMessage = jest.fn();
+			const options = [1, 2, 3];
+			messageListener({
+				data: {
+					type: 'call',
+					fnName: 'createSession',
+					options,
+					caller: 'test',
+				},
+				source: { postMessage },
+				origin: 'foobar',
+			} as unknown as ExtendableMessageEvent);
+
+			await sleep();
+			expect(createSession).not.toHaveBeenCalled();
+			expect(postMessage).not.toHaveBeenCalled();
 		});
 
 		it('should do nothing if the type is not "call"', async () => {
@@ -66,6 +91,7 @@ describe('worker/postMessage', () => {
 					caller: 'test',
 				},
 				source: { postMessage },
+				origin: location.origin,
 			} as unknown as ExtendableMessageEvent);
 
 			await sleep();
@@ -84,6 +110,7 @@ describe('worker/postMessage', () => {
 					caller: 'test',
 				},
 				source: { postMessage },
+				origin: location.origin,
 			} as unknown as ExtendableMessageEvent);
 
 			await sleep();

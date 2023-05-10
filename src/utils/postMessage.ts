@@ -16,6 +16,7 @@ export function callWorker<
 		}, TIMEOUT);
 
 		function handler(event: MessageEvent) {
+			if (event.origin !== location.origin) return;
 			if (event.data.key === caller) {
 				navigator.serviceWorker?.removeEventListener('message', handler);
 				if (event.data.error) {

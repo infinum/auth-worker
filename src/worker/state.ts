@@ -30,7 +30,7 @@ export async function getState() {
 		state = match ? ((await match.json()) as IState) : { providers: {} };
 		log('getState', state);
 	}
-	return structuredClone(state);
+	return { ...state }; // sructuredClone is not supported in Safari & Opera, so this will need to be good enough for now
 }
 
 export async function saveState(newState: IState) {
