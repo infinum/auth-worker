@@ -22,6 +22,16 @@ describe('worker/utils', () => {
 			const params = getHashParams();
 			expect(params).toEqual({});
 		});
+
+		it('should work for params with special cases', () => {
+			window.location.hash = 'test=foo=bar&baz&fooBar=rock+%26%20roll';
+			const params = getHashParams();
+			expect(params).toEqual({
+				test: 'foo=bar',
+				baz: '',
+				fooBar: 'rock & roll',
+			});
+		});
 	});
 
 	describe('log', () => {
