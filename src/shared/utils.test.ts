@@ -2,6 +2,10 @@ import { getRandom } from './utils';
 
 describe('shared/utils', () => {
 	describe('getRandom', () => {
+		afterEach(() => {
+			jest.resetAllMocks();
+		});
+
 		it('should return a random string', () => {
 			const result = getRandom();
 			expect(result.length).toEqual(32);
@@ -16,6 +20,22 @@ describe('shared/utils', () => {
 			}
 
 			expect(results.size).toEqual(TEST_COUNT);
+		});
+
+		it('should work with the crypto API', () => {
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			// @ts-ignore
+			delete globalThis.crypto;
+
+			globalThis.crypto = {
+				// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+				// @ts-ignore
+				randomUUID: jest.fn(() => '123-456'),
+			};
+
+			const result = getRandom();
+			expect(result).toBe('12345612345612345612345612345612');
+			expect(globalThis.crypto.randomUUID).toHaveBeenCalledTimes(6);
 		});
 	});
 });

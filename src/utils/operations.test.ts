@@ -6,31 +6,28 @@
 import { createSession, getUserData, deleteSession, getCsrfToken } from './operations';
 import { callWorker } from './postMessage';
 
-import { deleteState } from './storage';
-import { deletePkce } from '../shared/pkce';
+import { deleteState, getState } from './storage';
+import { deletePkce, getPkceVerifier } from '../shared/pkce';
 
-// Mock the callWorker function
-jest.mock('./postMessage', () => ({
-	callWorker: jest.fn(),
-}));
-
-jest.mock('./storage', () => ({
-	deleteState: jest.fn(),
-	getState: jest.fn().mockReturnValue('someState'),
-}));
-
-jest.mock('../shared/pkce', () => ({
-	deletePkce: jest.fn(),
-	getPkceVerifier: jest.fn().mockReturnValue('somePkce'),
-}));
+jest.mock('./postMessage');
+jest.mock('./storage');
+jest.mock('../shared/pkce');
 
 describe('utils/operations', () => {
 	afterEach(() => {
-		// Reset the mock implementation of callWorker after each test
 		jest.resetAllMocks();
 	});
 
 	describe('createSession', () => {
+		beforeEach(() => {
+			(getState as jest.Mock).mockReturnValueOnce('someState');
+			(getPkceVerifier as jest.Mock).mockReturnValueOnce('somePkce');
+		});
+
+		afterEach(() => {
+			jest.resetAllMocks();
+		});
+
 		it('should call callWorker with the correct arguments', async () => {
 			globalThis.window = {
 				// @ts-ignore
@@ -39,6 +36,23 @@ describe('utils/operations', () => {
 			await createSession('provider');
 			expect(callWorker).toHaveBeenCalledWith('createSession', [
 				'query',
+				'provider',
+				'someState',
+				'http://example.com',
+				'somePkce',
+			]);
+			expect(deleteState).toHaveBeenCalled();
+			expect(deletePkce).toHaveBeenCalled();
+		});
+
+		it('should call callWorker with hash value if long enough', async () => {
+			globalThis.window = {
+				// @ts-ignore
+				location: new URL('http://example.com?query#hash123456789'),
+			};
+			await createSession('provider');
+			expect(callWorker).toHaveBeenCalledWith('createSession', [
+				'hash123456789',
 				'provider',
 				'someState',
 				'http://example.com',

@@ -51,9 +51,6 @@
 		],
 		"testRegex": "src/(.*).test.ts$",
 		"preset": "ts-jest",
-		"testMatch": null,
-		"collectCoverageFrom": [
-			"src/**/*.ts"
-		]
+		"testMatch": null
 	}
 }

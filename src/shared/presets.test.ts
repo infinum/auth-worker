@@ -70,6 +70,21 @@ describe('shared/presets', () => {
 			});
 		});
 
+		it('should work for reddit with no image', () => {
+			const data = {
+				id: '123',
+				name: 'test',
+				email: 'test@reddit.com',
+			};
+
+			const result = reddit?.userInfoParser?.(data);
+			expect(result).toEqual({
+				id: '123',
+				name: 'test',
+				email: 'test@reddit.com',
+			});
+		});
+
 		it('should work for auth0', () => {
 			const data = {
 				sub: '123',

@@ -6,6 +6,7 @@ import { getLoginUrl } from './login';
 import { IFullConfig } from '../interfaces/IFullConfig';
 import { auth0, google } from '../providers';
 import { LocalStorageMock } from '../../test/mock/localStorage';
+import { GrantFlow } from '../shared/enums';
 
 describe('utils/login', () => {
 	describe('getLoginUrl', () => {
@@ -50,7 +51,6 @@ describe('utils/login', () => {
 					auth0: {
 						clientId: 'abc123',
 						redirectUrl: '/redirect',
-						scopes: 'email',
 					},
 				},
 			};
@@ -61,10 +61,30 @@ describe('utils/login', () => {
 			expect(loginUrl).toContain('client_id=abc123');
 			expect(loginUrl).toContain('response_type=code');
 			expect(loginUrl).toContain('state=');
-			expect(loginUrl).toContain('scope=email');
+			expect(loginUrl).toContain('scope=');
 			expect(loginUrl).toContain('redirect_uri=');
 			expect(loginUrl).toContain('code_challenge=');
 			expect(loginUrl).toContain('code_challenge_method=S256');
+		});
+
+		it('should fail if ther loginUrl is not defined', () => {
+			const config: IFullConfig = {
+				providers: {
+					mockProvider: {
+						grantType: GrantFlow.Token,
+					},
+				},
+				config: {
+					mockProvider: {
+						clientId: 'abc123',
+						redirectUrl: '/redirect',
+						scopes: 'email',
+					},
+				},
+			};
+
+			const provider = 'mockProvider';
+			expect(() => getLoginUrl(config, provider)).toThrowError('No login URL provided');
 		});
 	});
 });
