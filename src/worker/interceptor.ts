@@ -14,7 +14,7 @@ export async function refreshToken(): Promise<void> {
 	const state = await getState();
 	const providerParams = await getProviderParams();
 	const providerOptions = await getProviderOptions();
-	if (!providerParams || !providerParams?.tokenUrl || !state.session?.refreshToken) {
+	if (!providerParams?.tokenUrl || !state.session?.refreshToken) {
 		throw new Error('No way to refresh the token');
 	}
 
