@@ -86,7 +86,7 @@ describe('worker/state', () => {
 			};
 
 			__setState(state);
-			await saveState();
+			await saveState(state);
 
 			expect(global.caches.open).toHaveBeenCalledWith('v1');
 			expect(cacheMock.put).toHaveBeenCalledTimes(1);

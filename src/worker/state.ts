@@ -30,11 +30,12 @@ export async function getState() {
 		state = match ? ((await match.json()) as IState) : { providers: {} };
 		log('getState', state);
 	}
-	return state;
+	return structuredClone(state);
 }
 
-export async function saveState() {
+export async function saveState(newState: IState) {
 	const cache = await caches.open('v1');
+	state = newState;
 	log('saveState', state);
 	await cache.put('state', new Response(JSON.stringify(state)));
 }

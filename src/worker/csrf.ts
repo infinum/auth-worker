@@ -5,7 +5,7 @@ export async function getCsrfToken() {
 	const state = await getState();
 	if (state.csrf === null) {
 		state.csrf = getRandom();
-		saveState();
+		saveState(state);
 	}
 	return state.csrf;
 }

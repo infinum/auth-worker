@@ -18,7 +18,7 @@ export async function initAuthWorker(providers: Record<string, IProvider>, urlCo
 	const state = await getState();
 	state.config = { config, providers, debug };
 	state.providers = providers;
-	saveState();
+	saveState(state);
 
 	const scope = globalThis as unknown as ServiceWorkerGlobalScope;
 
