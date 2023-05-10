@@ -14,7 +14,7 @@ export async function refreshToken(): Promise<void> {
 	const state = await getState();
 	const providerParams = await getProviderParams();
 	const providerOptions = await getProviderOptions();
-	if (!providerParams || !providerParams?.tokenUrl || !state.session?.refreshToken) {
+	if (!providerParams?.tokenUrl || !state.session?.refreshToken) {
 		throw new Error('No way to refresh the token');
 	}
 
@@ -47,7 +47,7 @@ export async function refreshToken(): Promise<void> {
 	if (providerParams.userInfoTokenName) {
 		state.session.userInfo = response[providerParams.userInfoTokenName];
 	}
-	saveState(state);
+	await saveState(state);
 }
 
 export async function fetchWithCredentials(request: Request): Promise<Response> {
@@ -90,7 +90,7 @@ export async function fetchListener(event: FetchEvent) {
 			}
 		}
 
-		log('fetch', event.request.method, event.request.url, { csrf: Boolean(csrf), auth: Boolean(useAuth) });
+		await log('fetch', event.request.method, event.request.url, { csrf: Boolean(csrf), auth: Boolean(useAuth) });
 		return event.respondWith(fetchWithCredentials(event.request));
 	}
 }

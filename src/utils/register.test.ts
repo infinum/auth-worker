@@ -10,12 +10,12 @@ describe('utils/register', () => {
 			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 			// @ts-ignore
 			window.navigator.serviceWorker = {
-				register: jest.fn(),
+				register: jest.fn(() => Promise.resolve()),
 			};
 		});
 
-		it('should call window.navigator.serviceWorker.register with the correct arguments', () => {
-			loadAuthWorker(
+		it('should call window.navigator.serviceWorker.register with the correct arguments', async () => {
+			await loadAuthWorker(
 				{
 					google: {
 						clientId: 'example-client-id',
@@ -34,8 +34,8 @@ describe('utils/register', () => {
 			);
 		});
 
-		it('should work with default options', () => {
-			loadAuthWorker({
+		it('should work with default options', async () => {
+			await loadAuthWorker({
 				google: {
 					clientId: 'example-client-id',
 					redirectUrl: '/test-redirect',

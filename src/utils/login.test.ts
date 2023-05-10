@@ -11,7 +11,10 @@ import { GrantFlow } from '../shared/enums';
 describe('utils/login', () => {
 	describe('getLoginUrl', () => {
 		beforeAll(() => {
-			global.localStorage = new LocalStorageMock();
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			// @ts-ignore
+			delete globalThis.localStorage;
+			globalThis.localStorage = new LocalStorageMock();
 		});
 
 		beforeEach(() => {

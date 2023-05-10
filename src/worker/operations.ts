@@ -26,7 +26,7 @@ export async function createSession(params: string, provider: string, localState
 	}
 
 	if (providerParams.grantType === GrantFlow.Token) {
-		const expiresIn = parseInt(parsedParams.get(providerParams.expiresInName ?? 'expires_in') ?? '', 10) || 3600;
+		const expiresIn = parseInt(parsedParams.get(providerParams.expiresInName ?? 'expires_in') ?? '', 10) ?? 3600;
 		const accessToken = parsedParams.get(providerParams.accessTokenName ?? 'access_token');
 		if (!accessToken) {
 			throw new Error('No access token found');
@@ -67,7 +67,7 @@ export async function createSession(params: string, provider: string, localState
 
 		const response = await res.json();
 
-		const expiresIn = response[providerParams.expiresInName ?? ''] || 3600;
+		const expiresIn = response[providerParams.expiresInName ?? ''] ?? 3600;
 		const accessToken = response[providerParams.accessTokenName ?? 'access_token'];
 
 		if (!accessToken) {
@@ -84,14 +84,14 @@ export async function createSession(params: string, provider: string, localState
 		};
 	}
 
-	saveState(state);
+	await saveState(state);
 	return getUserData();
 }
 
 export async function getUserData(): Promise<IUserData> {
 	const state = await getState();
 	if (!state.session) {
-		log('state', state);
+		await log('state', state);
 		throw new Error('No session found');
 	}
 
@@ -100,7 +100,7 @@ export async function getUserData(): Promise<IUserData> {
 		const decoded: Record<string, unknown> = jwtDecode(state.session.userInfo);
 		return {
 			provider: state.session.provider,
-			data: (providerParams?.userInfoParser?.(decoded) || decoded) as Record<string, unknown>,
+			data: (providerParams?.userInfoParser?.(decoded) ?? decoded) as Record<string, unknown>,
 		};
 	} else if (providerParams?.userInfoUrl) {
 		const request = new Request(providerParams.userInfoUrl);
@@ -110,7 +110,7 @@ export async function getUserData(): Promise<IUserData> {
 		}
 		const response = await resp.json();
 		return {
-			data: (providerParams?.userInfoParser?.(response) || response) as Record<string, unknown>,
+			data: (providerParams?.userInfoParser?.(response) ?? response) as Record<string, unknown>,
 			provider: state.session.provider,
 			expiresAt: state.session.expiresAt,
 			expiresAtDate: new Date(state.session.expiresAt),
@@ -123,5 +123,5 @@ export async function getUserData(): Promise<IUserData> {
 export async function deleteSession() {
 	const state = await getState();
 	state.session = undefined;
-	saveState(state);
+	await saveState(state);
 }

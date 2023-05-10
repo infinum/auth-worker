@@ -28,15 +28,15 @@ export async function getState() {
 	if (!state) {
 		const match = await caches.match('state');
 		state = match ? ((await match.json()) as IState) : { providers: {} };
-		log('getState', state);
+		await log('getState', state);
 	}
-	return structuredClone(state);
+	return { ...state }; // sructuredClone is not supported in Safari & Opera, so this will need to be good enough for now
 }
 
 export async function saveState(newState: IState) {
 	const cache = await caches.open('v1');
 	state = newState;
-	log('saveState', state);
+	await log('saveState', state);
 	await cache.put('state', new Response(JSON.stringify(state)));
 }
 

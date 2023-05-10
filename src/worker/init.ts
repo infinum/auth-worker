@@ -7,7 +7,7 @@ import { log } from './utils';
 
 function getConfig(data: string = location.search.slice(1)) {
 	const params = new URLSearchParams(data);
-	const config = JSON.parse(decodeURIComponent(params.get('config') || '{}')) as IConfig;
+	const config = JSON.parse(decodeURIComponent(params.get('config') ?? '{}')) as IConfig;
 	const debug = params.get('debug') === '1';
 
 	return { config, debug };
@@ -18,11 +18,11 @@ export async function initAuthWorker(providers: Record<string, IProvider>, urlCo
 	const state = await getState();
 	state.config = { config, providers, debug };
 	state.providers = providers;
-	saveState(state);
+	await saveState(state);
 
 	const scope = globalThis as unknown as ServiceWorkerGlobalScope;
 
-	log('init', state.config);
+	await log('init', state.config);
 
 	scope.addEventListener('fetch', fetchListener);
 	scope.addEventListener('message', messageListener);

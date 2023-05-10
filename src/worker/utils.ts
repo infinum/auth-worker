@@ -1,28 +1,20 @@
 import { getState } from './state';
 
 export function getHashParams(): Record<string, string> {
-	const fragmentString = location.hash.substring(1);
+	const fragmentParams = new URLSearchParams(location.hash.substring(1));
 
-	// Parse query string to see if page request is coming from OAuth 2.0 server.
-	const params: Record<string, string> = {};
-	const regex = /([^&=]+)=([^&]*)/g;
-	let m;
-	while ((m = regex.exec(fragmentString))) {
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		const [_, name, value] = m;
-		params[name] = decodeURIComponent(value);
-	}
-
-	return params;
+	return Object.fromEntries(
+		Array.from(fragmentParams.entries()).map(([key, value]) => [key, decodeURIComponent(value.replace(/\+/g, ' '))])
+	);
 }
 
-export function log(...args: Array<unknown>): void {
-	getState().then(
-		(state) => {
-			if (state.config?.debug) {
-				console.log('[auth-worker]', ...args);
-			}
-		},
-		() => null
-	);
+export async function log(...args: Array<unknown>): Promise<void> {
+	try {
+		const state = await getState();
+		if (state.config?.debug) {
+			console.log('[auth-worker]', ...args);
+		}
+	} catch {
+		return undefined;
+	}
 }
