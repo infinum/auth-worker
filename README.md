@@ -4,6 +4,8 @@ OAuth2 Service Worker handler
 
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=infinum_auth-worker&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=infinum_auth-worker)
 [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=infinum_auth-worker&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=infinum_auth-worker)
+[![CodeQL](https://github.com/infinum/auth-worker/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/infinum/auth-worker/actions/workflows/github-code-scanning/codeql)
+[![npm](https://img.shields.io/npm/v/auth-worker?color=limegreen)](https://www.npmjs.com/package/auth-worker)
 
 ## Motivation
 
