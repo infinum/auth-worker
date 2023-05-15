@@ -15,20 +15,9 @@ This library is an implementation of the OAuth2 recommendations for [Single Page
 
 ## Usage
 
-This example is with Google, but the lib supports [multiple providers](#providers) out of thhe box and custom providers can also be defined.
+This example is with Google, but the lib supports multiple providers out of the box and custom providers can also be defined.
 
-```ts
-// index.ts
-import { loadAuthWorker } from 'auth-worker';
-
-loadAuthWorker({
-	google: {
-		clientId: 'example-client-id',
-		redirectUrl: '/redirect',
-		scopes: 'https://www.googleapis.com/auth/userinfo.profile',
-	},
-}).catch(console.error);
-```
+Create a service worker:
 
 ```ts
 // service-worker.ts
@@ -46,6 +35,23 @@ addEventListener('activate', (event) => {
 initAuthWorker({ google });
 ```
 
+Load the service worker in the main app:
+
+```ts
+// index.ts
+import { loadAuthWorker } from 'auth-worker';
+
+loadAuthWorker({
+	google: {
+		clientId: 'example-client-id',
+		redirectUrl: '/redirect',
+		scopes: 'https://www.googleapis.com/auth/userinfo.profile',
+	},
+}).catch(console.error);
+```
+
+Generate the login URL:
+
 ```tsx
 // Login.tsx
 import { getLoginUrl } from 'auth-worker';
@@ -56,6 +62,8 @@ export const Login = () => {
 	return <a href={loginUrl}>Log me in!</a>;
 };
 ```
+
+When the user is redirected back to the app, create a session:
 
 ```tsx
 // Redirect.tsx
