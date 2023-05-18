@@ -4,7 +4,7 @@
 
 import { getCsrfToken } from './csrf';
 import { createSession } from './operations';
-import { messageListener } from './postMesage';
+import { messageListener, messageListenerWithOrigin } from './postMesage';
 
 function sleep() {
 	return new Promise((resolve) => setTimeout(resolve, 0));
@@ -64,7 +64,7 @@ describe('worker/postMessage', () => {
 		it("should ignore if the origin doesn't match", async () => {
 			const postMessage = jest.fn();
 			const options = [1, 2, 3];
-			messageListener({
+			messageListenerWithOrigin({
 				data: {
 					type: 'call',
 					fnName: 'createSession',

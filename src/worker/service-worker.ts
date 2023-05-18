@@ -1,7 +1,7 @@
 import { IAllowList } from '../interfaces/IAllowList';
 import { IProvider } from '../interfaces/IProvider';
 import { fetchListener } from './interceptor';
-import { messageListener } from './postMesage';
+import { messageListenerWithOrigin } from './postMesage';
 import { getState, saveState } from './state';
 import { getConfig, log } from './utils';
 
@@ -22,10 +22,10 @@ export async function initAuthServiceWorker(
 	await log('init', state.config);
 
 	scope.addEventListener('fetch', fetchListener);
-	scope.addEventListener('message', messageListener);
+	scope.addEventListener('message', messageListenerWithOrigin);
 
 	return () => {
 		scope.removeEventListener('fetch', fetchListener);
-		scope.removeEventListener('message', messageListener);
+		scope.removeEventListener('message', messageListenerWithOrigin);
 	};
 }

@@ -28,7 +28,9 @@ export function callWorker<
 		}, TIMEOUT);
 
 		function handler(event: MessageEvent) {
-			if (event.origin !== location.origin) return;
+			if (!(worker instanceof Worker)) {
+				if (event.origin !== location.origin) return;
+			}
 			const data: IMessagePayload<TReturnType> = event.data;
 
 			if (data.key === caller) {

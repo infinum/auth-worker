@@ -2,6 +2,8 @@ import { callWorker, setWorker } from './postMessage';
 
 type TListenerFn = (...args: Array<unknown>) => void;
 
+class MockWorker {}
+
 describe('utils/postMessage', () => {
 	describe('callWorker', () => {
 		const mockReturnValue = 'Mock return value';
@@ -25,6 +27,7 @@ describe('utils/postMessage', () => {
 		globalThis.location = {
 			origin: 'https://example.com',
 		} as unknown as Location;
+		globalThis.Worker = MockWorker as unknown as typeof Worker;
 		const listeners: Array<TListenerFn> = [];
 
 		beforeEach(() => {
