@@ -1,3 +1,4 @@
+import { IAllowList } from '../interfaces/IAllowList';
 import { IBaseConfig } from '../interfaces/IBaseConfig';
 import { IFullConfig } from '../interfaces/IFullConfig';
 import { IProvider } from '../interfaces/IProvider';
@@ -15,6 +16,7 @@ export interface IState {
 		userInfo?: string;
 	};
 	providers: Record<string, IProvider>;
+	allowList?: IAllowList;
 }
 
 let state: IState | null = null;

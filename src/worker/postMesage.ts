@@ -1,5 +1,5 @@
 import { getCsrfToken } from './csrf';
-import { createSession, getUserData, deleteSession } from './operations';
+import { createSession, getUserData, deleteSession, fetch } from './operations';
 import { log } from './utils';
 
 const operations = {
@@ -7,9 +7,11 @@ const operations = {
 	createSession,
 	getUserData,
 	deleteSession,
+	fetch,
 } as const;
 
-export function messageListener(event: ExtendableMessageEvent): void {
+export function messageListener(event: ExtendableMessageEvent | MessageEvent): void {
+	log('raw message:', event.origin, location.origin, event).catch(() => null);
 	if (event.origin !== location.origin) return;
 	log('message', event.data.type, event.data.fnName).catch(() => null);
 	if (event.data.type === 'call') {

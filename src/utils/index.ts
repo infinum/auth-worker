@@ -1,3 +1,3 @@
 export { getLoginUrl } from './login';
-export { loadAuthWorker } from './register';
+export { loadAuthServiceWorker, loadAuthWebWorker } from './register';
 export * from './operations';

@@ -4,6 +4,7 @@ import type {
 	createSession as workerCreateSession,
 	getUserData as workerGetUserData,
 	deleteSession as workerDeleteSession,
+	fetch as workerFetch,
 } from '../worker/operations';
 
 import type { getCsrfToken as workerGetCsrfToken } from '../worker/csrf';
@@ -38,4 +39,8 @@ export function deleteSession() {
 
 export function getCsrfToken() {
 	return callWorker<typeof workerGetCsrfToken>('getCsrfToken', []);
+}
+
+export function fetch(...args: Parameters<typeof workerFetch>) {
+	return callWorker<typeof workerFetch>('fetch', args);
 }

@@ -1,7 +1,17 @@
-import { getLoginUrl, createSession, getUserData, deleteSession } from 'auth-worker';
-import { useEffect, useState } from 'react';
+import { getLoginUrl, createSession, getUserData, deleteSession, fetch as workerFetch } from 'auth-worker';
+import { useCallback, useEffect, useState } from 'react';
 import './App.css';
 import { OAUTH2_CONFIG } from './config';
+
+const providerUrls: Record<string, string> = {
+	google: 'https://www.googleapis.com/oauth2/v3/userinfo',
+	facebook: 'https://graph.facebook.com/me',
+	twitter: 'https://api.twitter.com/1.1/account/verify_credentials.json',
+	reddit: 'https://oauth.reddit.com/api/v1/me',
+	auth0: 'https://dev-3q3q3q3q.us.auth0.com/userinfo',
+};
+
+const useSW = localStorage.getItem('useSW') === 'true';
 
 function App() {
 	const [result, setResult] = useState<null | { data: { name: string; picture: string } }>(null);
@@ -33,6 +43,19 @@ function App() {
 		setResult(null);
 	};
 
+	const getUserInfo = useCallback(async () => {
+		const data = await getUserData();
+		// @ts-ignore
+		const userInfoUrl: string | undefined = providerUrls[data?.provider];
+		const fetchFn = useSW ? workerFetch : fetch;
+		if (userInfoUrl) {
+			await fetchFn('/test');
+			const res = await fetchFn(userInfoUrl);
+			const userInfo = await res?.json();
+			console.log(userInfo);
+		}
+	}, []);
+
 	return (
 		<div>
 			{result ? (
@@ -40,6 +63,7 @@ function App() {
 					<h1>Logged in as {result.data.name}</h1>
 					<img src={result.data?.picture} alt="Profile" />
 					<code>{JSON.stringify(result)}</code>
+					<button onClick={getUserInfo}>Get user info</button>
 					<button onClick={logout}>Logout</button>
 				</div>
 			) : (

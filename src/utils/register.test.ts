@@ -2,10 +2,10 @@
  * @jest-environment jsdom
  */
 
-import { loadAuthWorker } from './register';
+import { loadAuthServiceWorker } from './register';
 
 describe('utils/register', () => {
-	describe('loadAuthWorker', () => {
+	describe('loadAuthServiceWorker', () => {
 		beforeEach(() => {
 			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 			// @ts-ignore
@@ -15,7 +15,7 @@ describe('utils/register', () => {
 		});
 
 		it('should call window.navigator.serviceWorker.register with the correct arguments', async () => {
-			await loadAuthWorker(
+			await loadAuthServiceWorker(
 				{
 					google: {
 						clientId: 'example-client-id',
@@ -35,7 +35,7 @@ describe('utils/register', () => {
 		});
 
 		it('should work with default options', async () => {
-			await loadAuthWorker({
+			await loadAuthServiceWorker({
 				google: {
 					clientId: 'example-client-id',
 					redirectUrl: '/test-redirect',

@@ -1,9 +1,10 @@
 import jwtDecode from 'jwt-decode';
 import { IUserData } from '../interfaces/IUserData';
-import { GrantFlow } from '../shared/enums';
+import { AuthError, GrantFlow } from '../shared/enums';
 import { getState, saveState } from './state';
-import { log } from './utils';
-import { fetchWithCredentials } from './interceptor';
+import { generateResponse, log } from './utils';
+import { fetchWithCredentials, isAllowedUrl } from './fetch';
+import { HttpMethod } from '../interfaces/IAllowList';
 
 export async function createSession(params: string, provider: string, localState: string, host: string, pkce?: string) {
 	const state = await getState();
@@ -47,7 +48,7 @@ export async function createSession(params: string, provider: string, localState
 		if (!accessCode) {
 			throw new Error('No access code found');
 		}
-		const res = await fetch(providerParams.tokenUrl, {
+		const res = await globalThis.fetch(providerParams.tokenUrl, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/x-www-form-urlencoded',
@@ -124,4 +125,11 @@ export async function deleteSession() {
 	const state = await getState();
 	state.session = undefined;
 	await saveState(state);
+}
+
+export async function fetch(info: RequestInfo, init?: RequestInit) {
+	const request = new Request(info, init);
+	if (!(await isAllowedUrl(request.url, request.method as HttpMethod))) {
+		return generateResponse({ error: AuthError.Unauthorized }, 401);
+	}
 }

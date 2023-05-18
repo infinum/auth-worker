@@ -15,15 +15,22 @@ While it may be tempting to simply store these tokens in the browser's localStor
 
 This library is an implementation of the OAuth2 recommendations for [Single Page Applications](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps#section-6.4) that uses a Service Worker to store the tokens in SW cache, which is inaccessable to the main app.
 
+## Service Worker or Web Worker?
+
+The library can be used with either a Service Worker or a Web Worker. The main difference is that with the Service Worker, you can use the built-in fetch or XMLHttpRequest APIs to make authenticated API calls, while with the Web Worker, you'll need to use the provided `fetch` function.
+On the other hand, the Web Worker is available right away, while the Service Worker needs to be installed first (and activated with a refresh). Also, Web Workers have [better support accross browsers](https://caniuse.com/webworkers,mdn-api_serviceworker).
+
+As a rule of thumb, if you don't need to use the built-in fetch or XMLHttpRequest APIs, use the Web Worker. Otherwise, use the Service Worker.
+
 ## Usage
 
 This example is with Google, but the lib supports multiple providers out of the box and custom providers can also be defined.
 
-Create a service worker:
+If using a service worker, create a service worker file:
 
 ```ts
 // service-worker.ts
-import { initAuthWorker } from 'auth-worker/worker';
+import { initAuthServiceWorker } from 'auth-worker/worker';
 import { google } from 'auth-worker/providers';
 
 addEventListener('install', (event) => {
@@ -34,22 +41,35 @@ addEventListener('activate', (event) => {
 	event.waitUntil(clients.claim());
 });
 
-initAuthWorker({ google });
+initAuthServiceWorker({ google });
 ```
 
-Load the service worker in the main app:
+Otherwise, create a web worker file:
+
+```ts
+// web-worker.ts
+import { initAuthWebWorker } from 'auth-worker/worker';
+import { google } from 'auth-worker/providers';
+
+initAuthWebWorker({ google });
+```
+
+Load the service worker or the web worker in the main app:
 
 ```ts
 // index.ts
-import { loadAuthWorker } from 'auth-worker';
+import { loadAuthServiceWorker, loadAuthWebWorker } from 'auth-worker';
 
-loadAuthWorker({
+const config = {
 	google: {
 		clientId: 'example-client-id',
 		redirectUrl: '/redirect',
 		scopes: 'https://www.googleapis.com/auth/userinfo.profile',
 	},
-}).catch(console.error);
+};
+
+loadAuthServiceWorker(config).catch(console.error);
+// or `loadAuthWebWorker(config);`
 ```
 
 Generate the login URL:
@@ -158,27 +178,28 @@ loadAuthWorker({
 | `options.scope?`      | `string`  | The scope opf the service worker. Defaults to `"/"`                     |
 | `options.debug?`      | `boolean` | Whether to enable debug mode. Defaults to `false`                       |
 
-### `initAuthWorker`
+### `initAuthServiceWorker` / `initAuthWebWorker`
 
-Initializes the Auth Worker with the specified providers - within the service worker.
+Initializes the Auth Worker with the specified providers - within either the service worker or web worker.
 
 #### Example
 
 ```ts
 // service-worker.ts
-import { initAuthWorker } from 'auth-worker/worker';
+import { initAuthServiceWorker, initAuthWebWorker } from 'auth-worker/worker';
 import { google } from 'auth-worker/providers';
 
-initAuthWorker({ google });
+initAuthServiceWorker({ google }); // or initAuthWebWorker({ google });
 ```
 
 Returns `Promise<() => void>`
 
 #### Parameters
 
-| Name        | Type                        | Description                        |
-| ----------- | --------------------------- | ---------------------------------- |
-| `providers` | `Record<string, IProvider>` | The providers that should be used. |
+| Name        | Type                                                                                                                              | Description                                                              |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `providers` | `Record<string, IProvider>`                                                                                                       | The providers that should be used.                                       |
+| `allowlist` | `Array<RegExp \| string \| { url: RegExp \| string; methods: Array<'GET' \| 'POST' \| 'PATCH' \| 'PUT' \| 'HEAD' \| 'DELETE'> }>` | The allowlist of URLs. Everything is allowed if the array is not passed. |
 
 ### `getLoginUrl`
 

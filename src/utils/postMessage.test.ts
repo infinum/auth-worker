@@ -1,4 +1,4 @@
-import { callWorker } from './postMessage';
+import { callWorker, setWorker } from './postMessage';
 
 type TListenerFn = (...args: Array<unknown>) => void;
 
@@ -8,8 +8,11 @@ describe('utils/postMessage', () => {
 		let isError = false;
 		let delay = 100;
 		const navigator: {
-			serviceWorker?: Pick<Navigator['serviceWorker'], 'addEventListener' | 'removeEventListener'> & {
-				controller: Pick<NonNullable<Navigator['serviceWorker']['controller']>, 'postMessage'>;
+			serviceWorker?: {
+				controller: Pick<
+					NonNullable<Navigator['serviceWorker']['controller']>,
+					'postMessage' | 'addEventListener' | 'removeEventListener'
+				>;
 			};
 		} = {};
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -50,12 +53,14 @@ describe('utils/postMessage', () => {
 							);
 						}, delay);
 					}),
+					addEventListener: jest.fn((_type: string, listener: TListenerFn) => listeners.push(listener)),
+					removeEventListener: jest.fn((_type: string, listener: TListenerFn) =>
+						listeners.splice(listeners.indexOf(listener), 1)
+					),
 				},
-				addEventListener: jest.fn((_type: string, listener: TListenerFn) => listeners.push(listener)),
-				removeEventListener: jest.fn((_type: string, listener: TListenerFn) =>
-					listeners.splice(listeners.indexOf(listener), 1)
-				),
 			};
+
+			setWorker(navigator.serviceWorker.controller as unknown as ServiceWorker);
 		});
 
 		afterEach(() => {
@@ -69,8 +74,8 @@ describe('utils/postMessage', () => {
 		it('should resolve with the expected value', async () => {
 			const result = await callWorker('myFunction', [1, 2, 3]);
 			expect(result).toBe(mockReturnValue);
-			expect(navigator.serviceWorker?.removeEventListener).toHaveBeenCalled();
-			expect(navigator.serviceWorker?.controller?.postMessage).toHaveBeenCalledWith({
+			expect(navigator.serviceWorker?.controller.removeEventListener).toHaveBeenCalled();
+			expect(navigator.serviceWorker?.controller.postMessage).toHaveBeenCalledWith({
 				type: 'call',
 				fnName: 'myFunction',
 				options: [1, 2, 3],
@@ -81,7 +86,7 @@ describe('utils/postMessage', () => {
 		it('should reject with an error if the message contains an error', async () => {
 			isError = true;
 			await expect(callWorker('myFunction', [1, 2, 3])).rejects.toThrow('Mock error');
-			expect(navigator.serviceWorker?.removeEventListener).toHaveBeenCalled();
+			expect(navigator.serviceWorker?.controller.removeEventListener).toHaveBeenCalled();
 		});
 
 		it('should reject with an error if the timeout is exceeded', async () => {
@@ -90,7 +95,7 @@ describe('utils/postMessage', () => {
 			const result = expect(callWorker('myFunction', [1, 2, 3])).rejects.toThrow('Timeout');
 			jest.runAllTimers();
 			await result;
-			expect(navigator.serviceWorker?.removeEventListener).toHaveBeenCalled();
+			expect(navigator.serviceWorker?.controller.removeEventListener).toHaveBeenCalled();
 		});
 	});
 });

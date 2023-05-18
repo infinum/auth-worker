@@ -1,6 +1,18 @@
 import { getRandom } from '../shared/utils';
 
-const TIMEOUT = 30000; // 30s should ber plenty of time?
+const TIMEOUT = 30000; // 30s should be plenty of time?
+
+let worker: ServiceWorker | Worker | null = null;
+
+export function setWorker(newWorker: ServiceWorker | Worker) {
+	worker = newWorker;
+}
+
+interface IMessagePayload<TReturnType> {
+	key?: string;
+	error?: string;
+	result: TReturnType;
+}
 
 export function callWorker<
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -12,22 +24,24 @@ export function callWorker<
 	return new Promise((resolve, reject) => {
 		const timeout = setTimeout(() => {
 			reject(new Error('Timeout'));
-			navigator.serviceWorker?.removeEventListener('message', handler);
+			(worker?.removeEventListener as (type: string, cb: typeof handler) => void)('message', handler);
 		}, TIMEOUT);
 
 		function handler(event: MessageEvent) {
 			if (event.origin !== location.origin) return;
-			if (event.data.key === caller) {
-				navigator.serviceWorker?.removeEventListener('message', handler);
-				if (event.data.error) {
-					reject(new Error(event.data.error));
+			const data: IMessagePayload<TReturnType> = event.data;
+
+			if (data.key === caller) {
+				(worker?.removeEventListener as (type: string, cb: typeof handler) => void)('message', handler);
+				if (data.error) {
+					reject(new Error(data.error));
 				} else {
-					resolve(event.data.result);
+					resolve(data.result);
 				}
 				clearTimeout(timeout);
 			}
 		}
-		navigator.serviceWorker?.addEventListener('message', handler);
-		navigator.serviceWorker?.controller?.postMessage({ type: 'call', fnName, options, caller });
+		(worker?.addEventListener as (type: string, cb: typeof handler) => void)('message', handler);
+		worker?.postMessage({ type: 'call', fnName, options, caller });
 	});
 }

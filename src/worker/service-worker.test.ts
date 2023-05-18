@@ -4,7 +4,7 @@
 
 import { IProvider } from '../interfaces/IProvider';
 import { GrantFlow } from '../shared/enums';
-import { initAuthWorker } from './init';
+import { initAuthServiceWorker } from './service-worker';
 import { getState } from './state';
 
 jest.mock('./state', () => ({
@@ -12,8 +12,8 @@ jest.mock('./state', () => ({
 	saveState: jest.fn(),
 }));
 
-describe('worker/init', () => {
-	describe('initAuthWorker', () => {
+describe('worker/service-worker', () => {
+	describe('initAuthServiceWorker', () => {
 		beforeEach(() => {
 			jest.spyOn(globalThis, 'addEventListener');
 			jest.spyOn(globalThis, 'removeEventListener');
@@ -32,7 +32,7 @@ describe('worker/init', () => {
 				},
 			};
 
-			const cleanupFn = await initAuthWorker(providers, 'config={"test": 1}');
+			const cleanupFn = await initAuthServiceWorker(providers, undefined, 'config={"test": 1}');
 
 			expect(cleanupFn).toBeInstanceOf(Function);
 			expect(globalThis.addEventListener).toHaveBeenCalledWith('fetch', expect.any(Function));
@@ -67,7 +67,7 @@ describe('worker/init', () => {
 			delete globalThis.location;
 			globalThis.location = { search: '?config={"test": 2}' } as Location;
 
-			const cleanupFn = await initAuthWorker(providers);
+			const cleanupFn = await initAuthServiceWorker(providers);
 
 			expect(cleanupFn).toBeInstanceOf(Function);
 			expect(globalThis.addEventListener).toHaveBeenCalledWith('fetch', expect.any(Function));
@@ -102,7 +102,7 @@ describe('worker/init', () => {
 			delete globalThis.location;
 			globalThis.location = { search: '' } as Location;
 
-			const cleanupFn = await initAuthWorker(providers);
+			const cleanupFn = await initAuthServiceWorker(providers);
 
 			expect(cleanupFn).toBeInstanceOf(Function);
 			expect(globalThis.addEventListener).toHaveBeenCalledWith('fetch', expect.any(Function));

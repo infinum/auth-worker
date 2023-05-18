@@ -3,13 +3,22 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
 
-import { loadAuthWorker } from 'auth-worker';
+import { loadAuthServiceWorker, loadAuthWebWorker } from 'auth-worker';
 import { OAUTH2_CONFIG } from './config';
 
-loadAuthWorker(OAUTH2_CONFIG.config, {
-	workerPath: '/service-worker.global.js',
-	debug: true,
-}).catch(console.error);
+const useSW = localStorage.getItem('useSW') === 'true';
+
+if (useSW) {
+	loadAuthServiceWorker(OAUTH2_CONFIG.config, {
+		workerPath: '/service-worker.global.js',
+		debug: true,
+	}).catch(console.error);
+} else {
+	loadAuthWebWorker(OAUTH2_CONFIG.config, {
+		workerPath: '/web-worker.global.js',
+		debug: true,
+	});
+}
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
 	<React.StrictMode>

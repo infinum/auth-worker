@@ -7,8 +7,10 @@
 		"dev": "vite",
 		"build": "tsc && vite build",
 		"preview": "vite preview",
-		"build:sw": "tsup ./sw/service-worker.ts --format iife --dts --sourcemap --out-dir ./public",
-		"dev:sw": "tsup ./sw/service-worker.ts --format iife --dts --sourcemap --out-dir ./public --watch"
+		"build:ww": "tsup ./workers/web-worker.ts --format iife --dts --sourcemap --out-dir ./public",
+		"dev:ww": "tsup ./workers/web-worker.ts --format iife --dts --sourcemap --out-dir ./public --watch",
+		"build:sw": "tsup ./workers/service-worker.ts --format iife --dts --sourcemap --out-dir ./public",
+		"dev:sw": "tsup ./workers/service-worker.ts --format iife --dts --sourcemap --out-dir ./public --watch"
 	},
 	"dependencies": {
 		"auth-worker": "file:../dist",
