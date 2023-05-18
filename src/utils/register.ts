@@ -17,7 +17,7 @@ export function loadAuthServiceWorker(
 		{ type: 'module', scope }
 	);
 
-	const workerInstance = window.navigator.serviceWorker?.controller;
+	const workerInstance = window.navigator.serviceWorker;
 	if (workerInstance) {
 		setWorker(workerInstance);
 	}

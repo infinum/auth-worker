@@ -49,7 +49,11 @@ function App() {
 		const fetchFn = useSW ? fetch : workerFetch;
 		if (userInfoUrl) {
 			await fetchFn('/test');
-			const res = await fetchFn(userInfoUrl);
+			const res = await fetchFn(userInfoUrl, {
+				headers: {
+					'X-Use-Auth': 'true',
+				},
+			});
 			const userInfo = await res.json();
 			console.log(userInfo);
 		}

@@ -11,10 +11,10 @@ describe('utils/postMessage', () => {
 		let delay = 100;
 		const navigator: {
 			serviceWorker?: {
-				controller: Pick<
-					NonNullable<Navigator['serviceWorker']['controller']>,
-					'postMessage' | 'addEventListener' | 'removeEventListener'
-				>;
+				addEventListener: jest.Mock;
+				removeEventListener: jest.Mock;
+			} & {
+				controller: Pick<NonNullable<Navigator['serviceWorker']['controller']>, 'postMessage'>;
 			};
 		} = {};
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -56,14 +56,14 @@ describe('utils/postMessage', () => {
 							);
 						}, delay);
 					}),
-					addEventListener: jest.fn((_type: string, listener: TListenerFn) => listeners.push(listener)),
-					removeEventListener: jest.fn((_type: string, listener: TListenerFn) =>
-						listeners.splice(listeners.indexOf(listener), 1)
-					),
 				},
+				addEventListener: jest.fn((_type: string, listener: TListenerFn) => listeners.push(listener)),
+				removeEventListener: jest.fn((_type: string, listener: TListenerFn) =>
+					listeners.splice(listeners.indexOf(listener), 1)
+				),
 			};
 
-			setWorker(navigator.serviceWorker.controller as unknown as ServiceWorker);
+			setWorker(navigator.serviceWorker as unknown as ServiceWorkerContainer);
 		});
 
 		afterEach(() => {
@@ -77,7 +77,7 @@ describe('utils/postMessage', () => {
 		it('should resolve with the expected value', async () => {
 			const result = await callWorker('myFunction', [1, 2, 3]);
 			expect(result).toBe(mockReturnValue);
-			expect(navigator.serviceWorker?.controller.removeEventListener).toHaveBeenCalled();
+			expect(navigator.serviceWorker?.removeEventListener).toHaveBeenCalled();
 			expect(navigator.serviceWorker?.controller.postMessage).toHaveBeenCalledWith({
 				type: 'call',
 				fnName: 'myFunction',
@@ -89,7 +89,7 @@ describe('utils/postMessage', () => {
 		it('should reject with an error if the message contains an error', async () => {
 			isError = true;
 			await expect(callWorker('myFunction', [1, 2, 3])).rejects.toThrow('Mock error');
-			expect(navigator.serviceWorker?.controller.removeEventListener).toHaveBeenCalled();
+			expect(navigator.serviceWorker?.removeEventListener).toHaveBeenCalled();
 		});
 
 		it('should reject with an error if the timeout is exceeded', async () => {
@@ -98,7 +98,7 @@ describe('utils/postMessage', () => {
 			const result = expect(callWorker('myFunction', [1, 2, 3])).rejects.toThrow('Timeout');
 			jest.runAllTimers();
 			await result;
-			expect(navigator.serviceWorker?.controller.removeEventListener).toHaveBeenCalled();
+			expect(navigator.serviceWorker?.removeEventListener).toHaveBeenCalled();
 		});
 	});
 });

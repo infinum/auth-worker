@@ -2,9 +2,9 @@ import { getRandom } from '../shared/utils';
 
 const TIMEOUT = 30000; // 30s should be plenty of time?
 
-let worker: ServiceWorker | Worker | null = null;
+let worker: ServiceWorkerContainer | Worker | null = null;
 
-export function setWorker(newWorker: ServiceWorker | Worker) {
+export function setWorker(newWorker: ServiceWorkerContainer | Worker) {
 	worker = newWorker;
 }
 
@@ -58,6 +58,7 @@ export function callWorker<
 			}
 		}
 		(worker?.addEventListener as (type: string, cb: typeof handler) => void)('message', handler);
-		worker?.postMessage({ type: 'call', fnName, options, caller });
+		const workerContext = worker && 'postMessage' in worker ? worker : worker?.controller;
+		workerContext?.postMessage({ type: 'call', fnName, options, caller });
 	});
 }
