@@ -25,16 +25,19 @@ export function messageListener(event: ExtendableMessageEvent | MessageEvent): v
 			fn(...event.data.options).then(
 				(result: unknown) => {
 					if (result instanceof Response) {
-						result.text().then((text) => {
-							target.postMessage({
-								key: event.data.caller,
-								response: {
-									text,
-									status: result.status,
-									statusText: result.statusText,
-									headers: Array.from(result.headers.entries()),
+						result.arrayBuffer().then((data) => {
+							target.postMessage(
+								{
+									key: event.data.caller,
+									response: {
+										data,
+										status: result.status,
+										statusText: result.statusText,
+										headers: Array.from(result.headers.entries()),
+									},
 								},
-							});
+								{ transfer: [data] }
+							);
 						});
 						return;
 					}

@@ -12,7 +12,7 @@ interface IMessagePayload<TReturnType> {
 	key?: string;
 	error?: string;
 	response?: {
-		text: string;
+		data: ArrayBuffer;
 		status: number;
 		statusText: string;
 		headers: Array<[string, string]>;
@@ -45,7 +45,7 @@ export function callWorker<
 					reject(new Error(data.error));
 				} else if (data.response) {
 					resolve(
-						new Response(data.response.text, {
+						new Response(data.response.data, {
 							status: data.response.status,
 							statusText: data.response.statusText,
 							headers: new Headers(data.response.headers),

@@ -5,10 +5,10 @@ import { OAUTH2_CONFIG } from './config';
 
 const providerUrls: Record<string, string> = {
 	google: 'https://www.googleapis.com/oauth2/v3/userinfo',
-	facebook: 'https://graph.facebook.com/me',
-	twitter: 'https://api.twitter.com/1.1/account/verify_credentials.json',
+	facebook: 'https://graph.facebook.com/v9.0/me',
+	twitter: 'https://api.twitter.com/2/users/me?user.fields=profile_image_url',
 	reddit: 'https://oauth.reddit.com/api/v1/me',
-	auth0: 'https://dev-3q3q3q3q.us.auth0.com/userinfo',
+	auth0: 'https://dev-u8csbbr8zashh2k8.us.auth0.com/userinfo',
 };
 
 const useSW = localStorage.getItem('useSW') === 'true';

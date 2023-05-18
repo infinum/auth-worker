@@ -74,8 +74,7 @@ export async function fetchWithCredentials(request: Request): Promise<Response> 
 
 export async function isAllowedUrl(url: string, method: HttpMethod): Promise<boolean> {
 	const state = await getState();
-	await log('isAllowedUrl', method, url);
-	return (
+	const status =
 		state?.allowList?.some((item) => {
 			if (typeof item === 'string') {
 				return url.startsWith(item);
@@ -87,6 +86,7 @@ export async function isAllowedUrl(url: string, method: HttpMethod): Promise<boo
 				return url.startsWith(item.url) && item.methods.includes(method);
 			}
 			return false;
-		}) ?? true
-	);
+		}) ?? true;
+	await log('isAllowedUrl', method, url, status);
+	return status;
 }

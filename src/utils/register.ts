@@ -28,21 +28,31 @@ export function loadAuthWebWorker(
 	config: IConfig,
 	{ workerPath = './service-worker.js', debug = false }: IWorkerSettings = {}
 ) {
-	if (!window.Worker) {
-		throw new Error('Web Workers are not supported in this browser');
-	}
+	return new Promise((resolve, reject) => {
+		if (!window.Worker) {
+			throw new Error('Web Workers are not supported in this browser');
+		}
 
-	const workerInstance = new Worker(
-		workerPath +
-			'?' +
-			new URLSearchParams({
-				config: JSON.stringify(config),
-				v: '1',
-				debug: debug ? '1' : '0',
-			}),
-		{ type: 'module' }
-	);
+		const workerInstance = new Worker(
+			workerPath +
+				'?' +
+				new URLSearchParams({
+					config: JSON.stringify(config),
+					v: '1',
+					debug: debug ? '1' : '0',
+				}),
+			{ type: 'module' }
+		);
 
-	setWorker(workerInstance);
-	return workerInstance;
+		workerInstance.addEventListener('message', (event) => {
+			if (event.data.type === 'ready') {
+				setWorker(workerInstance);
+				resolve(workerInstance);
+			}
+		});
+
+		workerInstance.addEventListener('error', (event) => {
+			reject(event.error);
+		});
+	});
 }

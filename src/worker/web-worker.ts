@@ -23,6 +23,8 @@ export async function initAuthWebWorker(
 	await log('Listening for messages');
 	scope.addEventListener('message', messageListener);
 
+	globalThis.postMessage({ type: 'ready' });
+
 	return () => {
 		scope.removeEventListener('message', messageListener);
 	};
