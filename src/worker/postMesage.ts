@@ -24,6 +24,20 @@ export function messageListener(event: ExtendableMessageEvent | MessageEvent): v
 			const target = event.source ?? globalThis;
 			fn(...event.data.options).then(
 				(result: unknown) => {
+					if (result instanceof Response) {
+						result.text().then((text) => {
+							target.postMessage({
+								key: event.data.caller,
+								response: {
+									text,
+									status: result.status,
+									statusText: result.statusText,
+									headers: Array.from(result.headers.entries()),
+								},
+							});
+						});
+						return;
+					}
 					target.postMessage({ key: event.data.caller, result });
 				},
 				(error: Error) => {

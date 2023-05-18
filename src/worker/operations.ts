@@ -127,9 +127,10 @@ export async function deleteSession() {
 	await saveState(state);
 }
 
-export async function fetch(info: RequestInfo, init?: RequestInit) {
+export async function fetch(info: RequestInfo, init?: RequestInit): Promise<Response> {
 	const request = new Request(info, init);
 	if (!(await isAllowedUrl(request.url, request.method as HttpMethod))) {
 		return generateResponse({ error: AuthError.Unauthorized }, 401);
 	}
+	return fetchWithCredentials(request);
 }

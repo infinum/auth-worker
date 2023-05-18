@@ -11,6 +11,12 @@ export function setWorker(newWorker: ServiceWorker | Worker) {
 interface IMessagePayload<TReturnType> {
 	key?: string;
 	error?: string;
+	response?: {
+		text: string;
+		status: number;
+		statusText: string;
+		headers: Array<[string, string]>;
+	};
 	result: TReturnType;
 }
 
@@ -37,6 +43,14 @@ export function callWorker<
 				(worker?.removeEventListener as (type: string, cb: typeof handler) => void)('message', handler);
 				if (data.error) {
 					reject(new Error(data.error));
+				} else if (data.response) {
+					resolve(
+						new Response(data.response.text, {
+							status: data.response.status,
+							statusText: data.response.statusText,
+							headers: new Headers(data.response.headers),
+						}) as TReturnType
+					);
 				} else {
 					resolve(data.result);
 				}

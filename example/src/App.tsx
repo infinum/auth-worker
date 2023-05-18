@@ -44,17 +44,16 @@ function App() {
 	};
 
 	const getUserInfo = useCallback(async () => {
-		const data = await getUserData();
 		// @ts-ignore
-		const userInfoUrl: string | undefined = providerUrls[data?.provider];
-		const fetchFn = useSW ? workerFetch : fetch;
+		const userInfoUrl: string | undefined = providerUrls[result?.provider];
+		const fetchFn = useSW ? fetch : workerFetch;
 		if (userInfoUrl) {
 			await fetchFn('/test');
 			const res = await fetchFn(userInfoUrl);
-			const userInfo = await res?.json();
+			const userInfo = await res.json();
 			console.log(userInfo);
 		}
-	}, []);
+	}, [result]);
 
 	return (
 		<div>

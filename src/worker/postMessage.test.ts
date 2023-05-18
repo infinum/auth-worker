@@ -10,6 +10,8 @@ function sleep() {
 	return new Promise((resolve) => setTimeout(resolve, 0));
 }
 
+class MockResponse {}
+
 jest.mock('./csrf', () => ({
 	getCsrfToken: jest.fn(() => Promise.resolve('csrf')),
 }));
@@ -21,6 +23,10 @@ describe('worker/postMessage', () => {
 	describe('messageListener', () => {
 		afterEach(() => {
 			jest.clearAllMocks();
+		});
+
+		beforeEach(() => {
+			globalThis.Response = MockResponse as unknown as typeof Response;
 		});
 
 		it('should work for the default case', async () => {
