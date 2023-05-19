@@ -22,20 +22,7 @@ export function loadAuthServiceWorker(
 		setWorker(workerInstance);
 	}
 
-	const readyPromise = new Promise((resolve, reject) => {
-		workerInstance.addEventListener('message', (event) => {
-			if (event.data.type === 'ready') {
-				setWorker(workerInstance);
-				resolve(workerInstance);
-			}
-		});
-
-		workerInstance.addEventListener('error', (event) => {
-			reject(event);
-		});
-	});
-
-	return Promise.race([readyPromise, workerRegistration]);
+	return workerRegistration;
 }
 
 export function loadAuthWebWorker(
