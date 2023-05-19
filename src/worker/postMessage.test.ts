@@ -2,15 +2,14 @@
  * @jest-environment jsdom
  */
 
+import { MockResponse } from '../../test/mock/Response';
 import { getCsrfToken } from './csrf';
-import { createSession } from './operations';
+import { createSession, fetch } from './operations';
 import { messageListener, messageListenerWithOrigin } from './postMesage';
 
 function sleep() {
 	return new Promise((resolve) => setTimeout(resolve, 0));
 }
-
-class MockResponse {}
 
 jest.mock('./state', () => ({
 	getState: jest.fn(() => Promise.resolve({})),
@@ -22,6 +21,7 @@ jest.mock('./csrf', () => ({
 }));
 jest.mock('./operations', () => ({
 	createSession: jest.fn().mockRejectedValue(new Error('createSession')),
+	fetch: jest.fn().mockResolvedValue(new MockResponse('foobar', { status: 200, statusText: 'OK', headers: {} })),
 }));
 
 describe('worker/postMessage', () => {
@@ -31,10 +31,42 @@ describe('worker/postMessage', () => {
 		});
 
 		beforeEach(() => {
-			globalThis.Response = MockResponse as unknown as typeof Response;
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			// @ts-ignore
+			globalThis.Response = MockResponse;
 		});
 
 		it('should work for the default case', async () => {
+			const postMessage = jest.fn();
+			const options = [1, 2, 3];
+			messageListener({
+				data: {
+					type: 'call',
+					fnName: 'fetch',
+					options,
+					caller: 'test',
+				},
+				source: { postMessage },
+				origin: location.origin,
+			} as unknown as ExtendableMessageEvent);
+
+			await sleep();
+			expect(fetch).toHaveBeenCalledWith(...options);
+			expect(postMessage).toHaveBeenCalledWith(
+				{
+					key: 'test',
+					response: {
+						data: 'foobar',
+						headers: [],
+						status: 200,
+						statusText: 'OK',
+					},
+				},
+				{ transfer: ['foobar'] }
+			);
+		});
+
+		it('should work for Response objects', async () => {
 			const postMessage = jest.fn();
 			const options = [1, 2, 3];
 			messageListener({
@@ -56,7 +88,7 @@ describe('worker/postMessage', () => {
 		it('should handle errors', async () => {
 			const postMessage = jest.fn();
 			const options = [1, 2, 3];
-			messageListener({
+			messageListenerWithOrigin({
 				data: {
 					type: 'call',
 					fnName: 'createSession',
