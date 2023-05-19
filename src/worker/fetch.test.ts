@@ -1,5 +1,5 @@
 import { AuthError } from '../shared/enums';
-import { fetchWithCredentials, refreshToken } from './fetch';
+import { fetchWithCredentials, isAllowedUrl, refreshToken } from './fetch';
 import { getProviderOptions, getProviderParams, getState, saveState } from './state';
 
 jest.mock('./state');
@@ -248,6 +248,86 @@ describe('worker/fetch', () => {
 			expect(reqHeaders.get('X-CSRF-Token')).toBeNull();
 			expect(reqHeaders.get('X-Use-Auth')).toBeNull();
 			expect(await response.text()).toEqual('mockResponse');
+		});
+	});
+
+	describe('isAllowedUrl', () => {
+		it('should allow all if unset', async () => {
+			(getState as jest.Mock).mockResolvedValue({});
+
+			expect(await isAllowedUrl('https://example.com', 'GET')).toBe(true);
+			expect(await isAllowedUrl('https://example.com/foo/bar', 'GET')).toBe(true);
+			expect(await isAllowedUrl('https://example.org', 'GET')).toBe(true);
+		});
+
+		it('should disallow all if unknown value', async () => {
+			(getState as jest.Mock).mockResolvedValue({
+				allowList: [123],
+			});
+
+			expect(await isAllowedUrl('https://example.com', 'GET')).toBe(false);
+			expect(await isAllowedUrl('https://example.com/foo/bar', 'GET')).toBe(false);
+			expect(await isAllowedUrl('https://example.org', 'GET')).toBe(false);
+		});
+
+		it('should allow all methods with string', async () => {
+			(getState as jest.Mock).mockResolvedValue({
+				allowList: ['https://example.com'],
+			});
+
+			expect(await isAllowedUrl('https://example.com', 'GET')).toBe(true);
+			expect(await isAllowedUrl('https://example.com', 'POST')).toBe(true);
+			expect(await isAllowedUrl('https://example.com/foo/bar', 'GET')).toBe(true);
+			expect(await isAllowedUrl('https://example.org', 'POST')).toBe(false);
+		});
+
+		it('should allow all methods with string path', async () => {
+			(getState as jest.Mock).mockResolvedValue({
+				allowList: ['https://example.com/foo'],
+			});
+
+			expect(await isAllowedUrl('https://example.com', 'GET')).toBe(false);
+			expect(await isAllowedUrl('https://example.com', 'POST')).toBe(false);
+			expect(await isAllowedUrl('https://example.com/foo/bar', 'GET')).toBe(true);
+			expect(await isAllowedUrl('https://example.org', 'POST')).toBe(false);
+		});
+
+		it('should allow all methods with regex', async () => {
+			(getState as jest.Mock).mockResolvedValue({
+				allowList: [new RegExp('https://example.')],
+			});
+
+			expect(await isAllowedUrl('https://example.com', 'GET')).toBe(true);
+			expect(await isAllowedUrl('https://example.com', 'POST')).toBe(true);
+			expect(await isAllowedUrl('https://example.com/foo/bar', 'GET')).toBe(true);
+			expect(await isAllowedUrl('https://example.org', 'POST')).toBe(true);
+			expect(await isAllowedUrl('https://infinum.com', 'POST')).toBe(false);
+		});
+
+		it('should allow specic methods with string path', async () => {
+			(getState as jest.Mock).mockResolvedValue({
+				allowList: [{ url: 'https://example.com/foo', methods: ['GET', 'PUT'] }],
+			});
+
+			expect(await isAllowedUrl('https://example.com', 'GET')).toBe(false);
+			expect(await isAllowedUrl('https://example.com', 'POST')).toBe(false);
+			expect(await isAllowedUrl('https://example.com/foo/bar', 'GET')).toBe(true);
+			expect(await isAllowedUrl('https://example.com/foo/bar', 'POST')).toBe(false);
+			expect(await isAllowedUrl('https://example.com/foo/bar', 'PUT')).toBe(true);
+			expect(await isAllowedUrl('https://example.org', 'POST')).toBe(false);
+		});
+
+		it('should allow specic methods with regex', async () => {
+			(getState as jest.Mock).mockResolvedValue({
+				allowList: [{ url: new RegExp('https://example.'), methods: ['GET', 'PUT'] }],
+			});
+
+			expect(await isAllowedUrl('https://example.com', 'GET')).toBe(true);
+			expect(await isAllowedUrl('https://example.com', 'POST')).toBe(false);
+			expect(await isAllowedUrl('https://example.com/foo/bar', 'GET')).toBe(true);
+			expect(await isAllowedUrl('https://example.com/foo/bar', 'POST')).toBe(false);
+			expect(await isAllowedUrl('https://example.com/foo/bar', 'PUT')).toBe(true);
+			expect(await isAllowedUrl('https://example.org', 'POST')).toBe(false);
 		});
 	});
 });
