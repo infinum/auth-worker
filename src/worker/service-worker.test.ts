@@ -35,6 +35,8 @@ describe('worker/service-worker', () => {
 			const cleanupFn = await initAuthServiceWorker(providers, undefined, 'config={"test": 1}');
 
 			expect(cleanupFn).toBeInstanceOf(Function);
+			expect(globalThis.addEventListener).toHaveBeenCalledWith('install', expect.any(Function));
+			expect(globalThis.addEventListener).toHaveBeenCalledWith('activate', expect.any(Function));
 			expect(globalThis.addEventListener).toHaveBeenCalledWith('fetch', expect.any(Function));
 			expect(globalThis.addEventListener).toHaveBeenCalledWith('message', expect.any(Function));
 			expect(globalThis.removeEventListener).not.toHaveBeenCalledWith('fetch', expect.any(Function));
@@ -121,6 +123,53 @@ describe('worker/service-worker', () => {
 				debug: false,
 				providers,
 			});
+		});
+
+		it('should claim control', async () => {
+			const providers: Record<string, IProvider> = {
+				exampleProvider: {
+					grantType: GrantFlow.Token,
+				},
+			};
+
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			// @ts-ignore
+			delete globalThis.location;
+			globalThis.location = { search: '?config={"test": 2}' } as Location;
+
+			await initAuthServiceWorker(providers, undefined, 'config={"test": 1}');
+
+			const installFn = (globalThis.addEventListener as jest.Mock).mock.calls[0][1];
+			const activateFn = (globalThis.addEventListener as jest.Mock).mock.calls[1][1];
+
+			const skipWaiting = jest.fn();
+			const claim = jest.fn();
+			const matchAll = jest.fn(() => Promise.resolve([{ postMessage: jest.fn() }]));
+
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			// @ts-ignore
+			globalThis.clients = {
+				claim,
+				matchAll,
+			} as unknown as Clients;
+
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			// @ts-ignore
+			globalThis.skipWaiting = skipWaiting;
+
+			await installFn({ waitUntil: jest.fn() } as unknown as ExtendableEvent);
+
+			expect(skipWaiting).toHaveBeenCalled();
+
+			await activateFn({ waitUntil: jest.fn() } as unknown as ExtendableEvent);
+
+			expect(skipWaiting).toHaveBeenCalled();
+			expect(claim).toHaveBeenCalled();
+			expect(matchAll).toHaveBeenCalled();
+
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			// @ts-ignore
+			expect(globalThis.clients.matchAll).toHaveBeenCalled();
 		});
 	});
 });
