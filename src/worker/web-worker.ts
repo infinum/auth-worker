@@ -18,9 +18,9 @@ export async function initAuthWebWorker(
 
 	const scope = globalThis as unknown as Worker;
 
-	await log('init', state.config);
+	log('init', state.config);
 
-	await log('Listening for messages');
+	log('Listening for messages');
 	scope.addEventListener('message', messageListener);
 
 	globalThis.postMessage({ type: 'ready' });

@@ -87,6 +87,6 @@ export async function isAllowedUrl(url: string, method: HttpMethod): Promise<boo
 			}
 			return false;
 		}) ?? true;
-	await log('isAllowedUrl', method, url, status);
+	log('🟢 allowed', method, url, status);
 	return status;
 }

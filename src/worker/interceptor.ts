@@ -9,6 +9,7 @@ export async function fetchListener(event: FetchEvent) {
 	const csrf = event.request.headers.get('X-CSRF-Token');
 
 	if (useAuth) {
+		log('🔐 fetch', event.request.method, event.request.url);
 		if (!(await isAllowedUrl(event.request.url, event.request.method as HttpMethod))) {
 			return event.respondWith(generateResponse({ error: AuthError.Unauthorized }, 401));
 		}
@@ -19,7 +20,7 @@ export async function fetchListener(event: FetchEvent) {
 			}
 		}
 
-		await log('fetch', event.request.method, event.request.url, { csrf: Boolean(csrf), auth: Boolean(useAuth) });
+		log('🌍 fetch', event.request.method, event.request.url, { csrf: Boolean(csrf), auth: Boolean(useAuth) });
 		return event.respondWith(fetchWithCredentials(event.request));
 	}
 }

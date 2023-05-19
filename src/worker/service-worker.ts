@@ -11,18 +11,38 @@ export async function initAuthServiceWorker(
 	urlConfig?: string
 ): Promise<() => void> {
 	const { config, debug } = getConfig(urlConfig);
+
+	const scope = globalThis as unknown as ServiceWorkerGlobalScope;
+
+	scope.addEventListener('install', (event) => {
+		log('install', event);
+		event.waitUntil(scope.skipWaiting());
+	});
+
+	scope.addEventListener('activate', async function (event) {
+		log('Claiming control', event);
+
+		await scope.skipWaiting();
+		await scope.clients.claim();
+
+		scope.clients.matchAll().then((clients) => {
+			clients.forEach((client) => {
+				client.postMessage({ type: 'ready' });
+			});
+		});
+	});
+
+	scope.addEventListener('fetch', fetchListener);
+	scope.addEventListener('message', messageListenerWithOrigin);
+
 	const state = await getState();
 	state.config = { config, providers, debug };
 	state.providers = providers;
 	state.allowList = allowList;
+
+	log('init', state.config);
+
 	await saveState(state);
-
-	const scope = globalThis as unknown as ServiceWorkerGlobalScope;
-
-	await log('init', state.config);
-
-	scope.addEventListener('fetch', fetchListener);
-	scope.addEventListener('message', messageListenerWithOrigin);
 
 	return () => {
 		scope.removeEventListener('fetch', fetchListener);

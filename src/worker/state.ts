@@ -2,7 +2,6 @@ import { IAllowList } from '../interfaces/IAllowList';
 import { IBaseConfig } from '../interfaces/IBaseConfig';
 import { IFullConfig } from '../interfaces/IFullConfig';
 import { IProvider } from '../interfaces/IProvider';
-import { log } from './utils';
 
 export interface IState {
 	csrf?: string;
@@ -28,9 +27,9 @@ export function __setState(newState: IState | null = null) {
 
 export async function getState() {
 	if (!state) {
+		// TODO: Should we avoid the in-memory cache and always fetch from the cache?
 		const match = await caches.match('state');
 		state = match ? ((await match.json()) as IState) : { providers: {} };
-		await log('getState', state);
 	}
 	return { ...state }; // sructuredClone is not supported in Safari & Opera, so this will need to be good enough for now
 }
@@ -38,7 +37,6 @@ export async function getState() {
 export async function saveState(newState: IState) {
 	const cache = await caches.open('v1');
 	state = newState;
-	await log('saveState', state);
 	await cache.put('state', new Response(JSON.stringify(state)));
 }
 

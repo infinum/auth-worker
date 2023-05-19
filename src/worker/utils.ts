@@ -1,6 +1,9 @@
 import { IConfig } from '../interfaces/IConfig';
 import { getState } from './state';
 
+const INSTANCE = Date.now().toString(36).slice(-4);
+const scope = 'postMessage' in globalThis ? 'WW' : 'SW';
+
 export function getConfig(data: string = location.search.slice(1)) {
 	const params = new URLSearchParams(data);
 	const config = JSON.parse(decodeURIComponent(params.get('config') ?? '{}')) as IConfig;
@@ -17,15 +20,12 @@ export function getHashParams(): Record<string, string> {
 	);
 }
 
-export async function log(...args: Array<unknown>): Promise<void> {
-	try {
-		const state = await getState();
+export function log(...args: Array<unknown>): void {
+	getState().then((state) => {
 		if (state.config?.debug) {
-			console.log('[auth-worker]', ...args);
+			console.log(`%c${scope}/${INSTANCE}`, 'font-weight: bold;color: red;', ...args);
 		}
-	} catch {
-		return undefined;
-	}
+	});
 }
 
 export function generateResponse(resp: null | Record<string, unknown>, status = 200): Response {

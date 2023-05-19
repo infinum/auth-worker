@@ -16,7 +16,7 @@ export function messageListenerWithOrigin(event: ExtendableMessageEvent | Messag
 }
 
 export function messageListener(event: ExtendableMessageEvent | MessageEvent): void {
-	log('message', event.data.type, event.data.fnName, event.data).catch(() => null);
+	log('📨', event.data.type, event.data.fnName, event.data);
 	if (event.data.type === 'call') {
 		if (event.data.fnName in operations) {
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -26,6 +26,7 @@ export function messageListener(event: ExtendableMessageEvent | MessageEvent): v
 				(result: unknown) => {
 					if (result instanceof Response) {
 						result.arrayBuffer().then((data) => {
+							log('✅ 🌐', event.data.type, event.data.fnName, data);
 							target.postMessage(
 								{
 									key: event.data.caller,
@@ -41,9 +42,11 @@ export function messageListener(event: ExtendableMessageEvent | MessageEvent): v
 						});
 						return;
 					}
+					log('✅', event.data.type, event.data.fnName, result);
 					target.postMessage({ key: event.data.caller, result });
 				},
 				(error: Error) => {
+					log('❌', event.data.type, event.data.fnName, error);
 					target.postMessage({ key: event.data.caller, error: error.message });
 				}
 			);

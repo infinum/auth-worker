@@ -50,19 +50,19 @@ describe('worker/utils', () => {
 
 		it('should log to the console if debug mode is enabled', async () => {
 			(getState as jest.Mock).mockResolvedValueOnce({ config: { debug: true } });
-			await log('hello', 'world');
+			log('hello', 'world');
 			expect(console.log).toHaveBeenCalledWith('[auth-worker]', 'hello', 'world');
 		});
 
 		it('should not log to the console if debug mode is disabled', async () => {
 			(getState as jest.Mock).mockResolvedValueOnce({ config: { debug: false } });
-			await log('hello', 'world');
+			log('hello', 'world');
 			expect(console.log).not.toHaveBeenCalled();
 		});
 
 		it('should not log to the console if an error occurs while getting the state', async () => {
 			(getState as jest.Mock).mockRejectedValueOnce(new Error('Failed to get state'));
-			await log('hello', 'world');
+			log('hello', 'world');
 			expect(console.log).not.toHaveBeenCalled();
 		});
 	});

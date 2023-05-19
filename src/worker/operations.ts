@@ -92,7 +92,7 @@ export async function createSession(params: string, provider: string, localState
 export async function getUserData(): Promise<IUserData> {
 	const state = await getState();
 	if (!state.session) {
-		await log('state', state);
+		log('state', state);
 		throw new Error('No session found');
 	}
 
