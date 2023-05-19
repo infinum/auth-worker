@@ -12,6 +12,11 @@ function sleep() {
 
 class MockResponse {}
 
+jest.mock('./state', () => ({
+	getState: jest.fn(() => Promise.resolve({})),
+	saveState: jest.fn(),
+}));
+
 jest.mock('./csrf', () => ({
 	getCsrfToken: jest.fn(() => Promise.resolve('csrf')),
 }));

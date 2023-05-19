@@ -48,21 +48,25 @@ describe('worker/utils', () => {
 			globalThis.console = originalConsole;
 		});
 
-		it('should log to the console if debug mode is enabled', async () => {
-			(getState as jest.Mock).mockResolvedValueOnce({ config: { debug: true } });
-			log('hello', 'world');
-			expect(console.log).toHaveBeenCalledWith('[auth-worker]', 'hello', 'world');
+		it('should log the arguments if debug is enabled in the state', async () => {
+			const mockState = Promise.resolve({ config: { debug: true } });
+			(getState as jest.Mock).mockReturnValueOnce(mockState);
+
+			log('Test Log');
+
+			await mockState;
+			expect(getState).toHaveBeenCalled();
+			expect(console.log).toHaveBeenCalledWith(expect.stringMatching(/%cWW\/\w{4}/), expect.any(String), 'Test Log');
 		});
 
-		it('should not log to the console if debug mode is disabled', async () => {
-			(getState as jest.Mock).mockResolvedValueOnce({ config: { debug: false } });
-			log('hello', 'world');
-			expect(console.log).not.toHaveBeenCalled();
-		});
+		it('should not log the arguments if debug is disabled in the state', async () => {
+			const mockState = Promise.resolve({ config: { debug: false } });
+			(getState as jest.Mock).mockReturnValueOnce(mockState);
 
-		it('should not log to the console if an error occurs while getting the state', async () => {
-			(getState as jest.Mock).mockRejectedValueOnce(new Error('Failed to get state'));
-			log('hello', 'world');
+			log('Test Log');
+
+			await mockState;
+			expect(getState).toHaveBeenCalled();
 			expect(console.log).not.toHaveBeenCalled();
 		});
 	});

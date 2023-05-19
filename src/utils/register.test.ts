@@ -11,6 +11,8 @@ describe('utils/register', () => {
 			// @ts-ignore
 			window.navigator.serviceWorker = {
 				register: jest.fn(() => Promise.resolve()),
+				addEventListener: jest.fn(),
+				removeEventListener: jest.fn(),
 			};
 		});
 
