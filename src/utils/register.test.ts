@@ -2,7 +2,8 @@
  * @jest-environment jsdom
  */
 
-import { loadAuthServiceWorker } from './register';
+import { Worker } from '../../test/mock/Worker';
+import { loadAuthServiceWorker, loadAuthWebWorker } from './register';
 
 describe('utils/register', () => {
 	describe('loadAuthServiceWorker', () => {
@@ -51,6 +52,70 @@ describe('utils/register', () => {
 					type: 'module',
 				}
 			);
+		});
+	});
+
+	describe('loadAuthWebWorker', () => {
+		beforeEach(() => {
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			// @ts-ignore
+			window.Worker = Worker;
+		});
+
+		afterEach(() => {
+			jest.clearAllMocks();
+			Worker.listeners = {};
+		});
+
+		it('should work with default options', async () => {
+			const workerLoader = loadAuthWebWorker({
+				google: {
+					clientId: 'example-client-id',
+					redirectUrl: '/test-redirect',
+					scopes: 'https://www.googleapis.com/auth/userinfo.profile',
+				},
+			});
+
+			expect(Worker.listeners.message).toHaveLength(1);
+			Worker.listeners.message.forEach((listener) => {
+				listener({ data: { type: 'ready' } });
+			});
+
+			const worker = await workerLoader;
+			expect(worker).toBeInstanceOf(Worker);
+		});
+
+		it('should fail if an error happens', async () => {
+			const workerLoader = loadAuthWebWorker({
+				google: {
+					clientId: 'example-client-id',
+					redirectUrl: '/test-redirect',
+					scopes: 'https://www.googleapis.com/auth/userinfo.profile',
+				},
+			});
+
+			expect(Worker.listeners.error).toHaveLength(1);
+			Worker.listeners.error.forEach((listener) => {
+				listener({ error: new Error('this is a test') });
+			});
+
+			expect(workerLoader).rejects.toThrow('this is a test');
+		});
+
+		it('should fail if the browser does not support web workers', async () => {
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			// @ts-ignore
+			window.Worker = undefined;
+
+			expect(
+				loadAuthWebWorker({
+					google: {
+						clientId: 'example-client-id',
+						redirectUrl: '/test-redirect',
+						scopes: 'https://www.googleapis.com/auth/userinfo.profile',
+					},
+				})
+			).rejects.toThrow('Web Workers are not supported in this browser');
 		});
 	});
 });

@@ -7,6 +7,14 @@ class MockWorker {}
 describe('utils/postMessage', () => {
 	describe('callWorker', () => {
 		const mockReturnValue = 'Mock return value';
+		let mockResponseValue:
+			| {
+					data: unknown;
+					status: number;
+					statusText: string;
+					headers?: Array<[string, string]>;
+			  }
+			| undefined = undefined;
 		let isError = false;
 		let delay = 100;
 		const navigator: {
@@ -44,16 +52,18 @@ describe('utils/postMessage', () => {
 							})
 						);
 						setTimeout(() => {
-							listeners.forEach((listener) =>
-								listener({
+							listeners.forEach((listener) => {
+								const data = {
 									data: {
 										key: message.caller,
 										result: isError ? undefined : mockReturnValue,
 										error: isError ? 'Mock error' : undefined,
+										response: mockResponseValue,
 									},
 									origin: location.origin,
-								})
-							);
+								};
+								return listener(data);
+							});
 						}, delay);
 					}),
 				},
@@ -71,6 +81,7 @@ describe('utils/postMessage', () => {
 			navigator.serviceWorker = undefined;
 			listeners.length = 0;
 			isError = false;
+			mockResponseValue = undefined;
 			delay = 100;
 		});
 
@@ -89,6 +100,22 @@ describe('utils/postMessage', () => {
 		it('should reject with an error if the message contains an error', async () => {
 			isError = true;
 			await expect(callWorker('myFunction', [1, 2, 3])).rejects.toThrow('Mock error');
+			expect(navigator.serviceWorker?.removeEventListener).toHaveBeenCalled();
+		});
+
+		it('should work if a response is in the payload', async () => {
+			mockResponseValue = {
+				data: 'foobar',
+				status: 200,
+				statusText: 'OK',
+				headers: [['Content-Type', 'text/plain']],
+			};
+
+			const result = await callWorker('myFunction', [3, 2, 1]);
+			expect(result).toBeInstanceOf(Response);
+			expect(result).toHaveProperty('status', 200);
+			expect(result).toHaveProperty('statusText', 'OK');
+			expect(result).toHaveProperty('headers', new Headers({ 'Content-Type': 'text/plain' }));
 			expect(navigator.serviceWorker?.removeEventListener).toHaveBeenCalled();
 		});
 
