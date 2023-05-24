@@ -4,7 +4,6 @@ import { IFullConfig } from '../interfaces/IFullConfig';
 import { IProvider } from '../interfaces/IProvider';
 
 export interface IState {
-	csrf?: string;
 	config?: IFullConfig;
 	session?: {
 		provider: keyof IState['providers'];

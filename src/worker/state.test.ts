@@ -55,7 +55,6 @@ describe('worker/state', () => {
 			globalThis.caches.open = jest.fn().mockResolvedValue(cacheMock);
 
 			const state: IState = {
-				csrf: 'csrfToken',
 				config: {
 					debug: false,
 					providers: {

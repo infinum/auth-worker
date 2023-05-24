@@ -234,7 +234,6 @@ describe('worker/fetch', () => {
 
 			const request = new Request('https://example.com', {
 				headers: {
-					'X-CSRF-Token': 'mockCsrfToken',
 					'X-Use-Auth': 'true',
 					'Content-Type': 'foo/bar',
 				},
@@ -245,7 +244,6 @@ describe('worker/fetch', () => {
 			const reqHeaders = (fetch as jest.Mock).mock.calls[1][0].headers;
 			expect(reqHeaders.get('Authorization')).toBe('mockTokenType mockAccessToken');
 			expect(reqHeaders.get('Content-Type')).toBe('foo/bar');
-			expect(reqHeaders.get('X-CSRF-Token')).toBeNull();
 			expect(reqHeaders.get('X-Use-Auth')).toBeNull();
 			expect(await response.text()).toEqual('mockResponse');
 		});

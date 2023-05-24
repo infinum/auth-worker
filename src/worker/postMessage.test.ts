@@ -3,8 +3,7 @@
  */
 
 import { MockResponse } from '../../test/mock/Response';
-import { getCsrfToken } from './csrf';
-import { createSession, fetch } from './operations';
+import { createSession, fetch, deleteSession } from './operations';
 import { messageListener, messageListenerWithOrigin } from './postMesage';
 
 function sleep() {
@@ -16,12 +15,10 @@ jest.mock('./state', () => ({
 	saveState: jest.fn(),
 }));
 
-jest.mock('./csrf', () => ({
-	getCsrfToken: jest.fn(() => Promise.resolve('csrf')),
-}));
 jest.mock('./operations', () => ({
 	createSession: jest.fn().mockRejectedValue(new Error('createSession')),
 	fetch: jest.fn().mockResolvedValue(new MockResponse('foobar', { status: 200, statusText: 'OK', headers: {} })),
+	deleteSession: jest.fn(() => Promise.resolve('deleteSession')),
 }));
 
 describe('worker/postMessage', () => {
@@ -72,7 +69,7 @@ describe('worker/postMessage', () => {
 			messageListener({
 				data: {
 					type: 'call',
-					fnName: 'getCsrfToken',
+					fnName: 'deleteSession',
 					options,
 					caller: 'test',
 				},
@@ -81,8 +78,8 @@ describe('worker/postMessage', () => {
 			} as unknown as ExtendableMessageEvent);
 
 			await sleep();
-			expect(getCsrfToken).toHaveBeenCalledWith(...options);
-			expect(postMessage).toHaveBeenCalledWith({ key: 'test', result: 'csrf' });
+			expect(deleteSession).toHaveBeenCalledWith(...options);
+			expect(postMessage).toHaveBeenCalledWith({ key: 'test', result: 'deleteSession' });
 		});
 
 		it('should handle errors', async () => {

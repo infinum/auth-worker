@@ -1,9 +1,7 @@
-import { getCsrfToken } from './csrf';
 import { createSession, getUserData, deleteSession, fetch } from './operations';
 import { log } from './utils';
 
 const operations = {
-	getCsrfToken,
 	createSession,
 	getUserData,
 	deleteSession,

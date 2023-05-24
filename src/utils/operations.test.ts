@@ -3,7 +3,7 @@
  * @jest-environment jsdom
  */
 
-import { createSession, getUserData, deleteSession, getCsrfToken } from './operations';
+import { createSession, getUserData, deleteSession } from './operations';
 import { callWorker } from './postMessage';
 
 import { deleteState, getState } from './storage';
@@ -94,20 +94,6 @@ describe('utils/operations', () => {
 			const mockResponse = { success: true };
 			(callWorker as jest.Mock).mockResolvedValueOnce(mockResponse);
 			const result = await deleteSession();
-			expect(result).toBe(mockResponse);
-		});
-	});
-
-	describe('getCsrfToken', () => {
-		it('should call callWorker with the correct arguments', async () => {
-			await getCsrfToken();
-			expect(callWorker).toHaveBeenCalledWith('getCsrfToken', []);
-		});
-
-		it('should return the response from callWorker', async () => {
-			const mockResponse = { success: true };
-			(callWorker as jest.Mock).mockResolvedValueOnce(mockResponse);
-			const result = await getCsrfToken();
 			expect(result).toBe(mockResponse);
 		});
 	});

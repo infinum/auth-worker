@@ -57,7 +57,6 @@ export async function fetchWithCredentials(request: Request): Promise<Response> 
 	}
 
 	const cleanHeaders = new Headers(request.headers);
-	cleanHeaders.delete('X-CSRF-Token');
 	cleanHeaders.delete('X-Use-Auth');
 	cleanHeaders.append('Authorization', `${state.session.tokenType} ${state.session.accessToken}`);
 	const updatedRequest = new Request(request, { headers: cleanHeaders });

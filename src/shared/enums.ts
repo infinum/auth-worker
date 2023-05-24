@@ -6,6 +6,5 @@ export enum GrantFlow {
 
 export enum AuthError {
 	InvalidState = 1,
-	InvalidCSRF,
 	Unauthorized,
 }

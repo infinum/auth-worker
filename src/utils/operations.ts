@@ -7,7 +7,6 @@ import type {
 	fetch as workerFetch,
 } from '../worker/operations';
 
-import type { getCsrfToken as workerGetCsrfToken } from '../worker/csrf';
 import { deleteState, getState } from './storage';
 import { deletePkce, getPkceVerifier } from '../shared/pkce';
 
@@ -35,10 +34,6 @@ export function getUserData() {
 
 export function deleteSession() {
 	return callWorker<typeof workerDeleteSession>('deleteSession', []);
-}
-
-export function getCsrfToken() {
-	return callWorker<typeof workerGetCsrfToken>('getCsrfToken', []);
 }
 
 export function fetch(...args: Parameters<typeof workerFetch>) {
