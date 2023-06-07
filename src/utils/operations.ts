@@ -7,14 +7,14 @@ import type {
 	fetch as workerFetch,
 } from '../worker/operations';
 
-import { deleteState, getState } from './storage';
+import { deleteState, getState } from '../shared/storage';
 import { deletePkce, getPkceVerifier } from '../shared/pkce';
 
 export async function createSession(provider: string) {
 	const hash = window.location.hash.substring(1);
 	const query = window.location.search.substring(1);
 	const params = hash && hash.length > 10 ? hash : query;
-	const localState = getState(provider);
+	const localState = await getState(provider);
 	const pkce = getPkceVerifier(provider);
 	const response = await callWorker<typeof workerCreateSession>('createSession', [
 		params,

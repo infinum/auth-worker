@@ -13,6 +13,8 @@ addEventListener('activate', (event) => {
 	event.waitUntil(clients.claim());
 });
 
-initAuthServiceWorker({ google, facebook, twitter, reddit, auth0: auth0('dev-u8csbbr8zashh2k8.us.auth0.com') }, [
-	'https://www.googleapis.com/oauth2/v3/userinfo',
-]);
+initAuthServiceWorker(
+	{ google, facebook, twitter, reddit, auth0: auth0('dev-u8csbbr8zashh2k8.us.auth0.com') },
+	'foobartest',
+	['https://www.googleapis.com/oauth2/v3/userinfo']
+);

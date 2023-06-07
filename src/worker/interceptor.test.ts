@@ -1,5 +1,5 @@
 import { fetchListener } from './interceptor';
-import { getProviderOptions, getProviderParams, getState } from './state';
+import { getProviderOptions, getProviderParams, getAuthState } from './state';
 
 jest.mock('./state');
 
@@ -10,7 +10,7 @@ describe('worker/interceptor', () => {
 
 	beforeEach(() => {
 		jest.spyOn(globalThis, 'fetch');
-		(getState as jest.Mock).mockResolvedValue({
+		(getAuthState as jest.Mock).mockResolvedValue({
 			allowList: undefined,
 		});
 	});
@@ -31,7 +31,7 @@ describe('worker/interceptor', () => {
 					'X-Use-Auth': 'true',
 				},
 			});
-			(getState as jest.Mock).mockResolvedValue({
+			(getAuthState as jest.Mock).mockResolvedValue({
 				session: {
 					expiresAt: Date.now() - 1000,
 					refreshToken: 'mockRefreshToken',

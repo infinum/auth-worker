@@ -5,7 +5,7 @@
 import { IProvider } from '../interfaces/IProvider';
 import { GrantFlow } from '../shared/enums';
 import { initAuthServiceWorker } from './service-worker';
-import { getState } from './state';
+import { getAuthState } from './state';
 
 jest.mock('./state', () => ({
 	getState: jest.fn(),
@@ -18,7 +18,7 @@ describe('worker/service-worker', () => {
 			jest.spyOn(globalThis, 'addEventListener');
 			jest.spyOn(globalThis, 'removeEventListener');
 
-			(getState as jest.Mock).mockResolvedValue({});
+			(getAuthState as jest.Mock).mockResolvedValue({});
 		});
 
 		afterEach(() => {
@@ -46,7 +46,7 @@ describe('worker/service-worker', () => {
 			expect(globalThis.removeEventListener).toHaveBeenCalledWith('fetch', expect.any(Function));
 			expect(globalThis.removeEventListener).toHaveBeenCalledWith('message', expect.any(Function));
 
-			const state = await getState();
+			const state = await getAuthState();
 
 			expect(state.config).toEqual({
 				config: {
@@ -81,7 +81,7 @@ describe('worker/service-worker', () => {
 			expect(globalThis.removeEventListener).toHaveBeenCalledWith('fetch', expect.any(Function));
 			expect(globalThis.removeEventListener).toHaveBeenCalledWith('message', expect.any(Function));
 
-			const state = await getState();
+			const state = await getAuthState();
 
 			expect(state.config).toEqual({
 				config: {
@@ -116,7 +116,7 @@ describe('worker/service-worker', () => {
 			expect(globalThis.removeEventListener).toHaveBeenCalledWith('fetch', expect.any(Function));
 			expect(globalThis.removeEventListener).toHaveBeenCalledWith('message', expect.any(Function));
 
-			const state = await getState();
+			const state = await getAuthState();
 
 			expect(state.config).toEqual({
 				config: {},

@@ -1,5 +1,5 @@
 import { GrantFlow } from '../shared/enums';
-import { getState, saveState, getProviderParams, getProviderOptions, __setState, IState } from './state';
+import { getAuthState, saveAuthState, getProviderParams, getProviderOptions, __setState, IState } from './state';
 
 describe('worker/state', () => {
 	describe('getState', () => {
@@ -16,7 +16,7 @@ describe('worker/state', () => {
 		it('should return a default state object if no cached data exists', async () => {
 			jest.spyOn(globalThis.caches, 'match').mockResolvedValue(undefined);
 
-			const result = await getState();
+			const result = await getAuthState();
 
 			expect(globalThis.caches.match).toHaveBeenCalledWith('state');
 			expect(result).toEqual({ providers: {} });
@@ -35,7 +35,7 @@ describe('worker/state', () => {
 			};
 			jest.spyOn(globalThis.caches, 'match').mockResolvedValue(new Response(JSON.stringify(cachedState)));
 
-			const result = await getState();
+			const result = await getAuthState();
 
 			expect(globalThis.caches.match).toHaveBeenCalledWith('state');
 			expect(result).toEqual(cachedState);
@@ -85,7 +85,7 @@ describe('worker/state', () => {
 			};
 
 			__setState(state);
-			await saveState(state);
+			await saveAuthState(state);
 
 			expect(global.caches.open).toHaveBeenCalledWith('v1');
 			expect(cacheMock.put).toHaveBeenCalledTimes(1);

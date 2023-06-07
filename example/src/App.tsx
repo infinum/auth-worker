@@ -14,6 +14,7 @@ const providerUrls: Record<string, string> = {
 const useSW = localStorage.getItem('useSW') === 'true';
 
 function App() {
+	const [links, setLinks] = useState<Record<string, string>>({});
 	const [result, setResult] = useState<null | { data: { name: string; picture: string } }>(null);
 	useEffect(() => {
 		if (result) {
@@ -59,6 +60,26 @@ function App() {
 		}
 	}, [result]);
 
+	useEffect(() => {
+		if (!result) {
+			Promise.all([
+				getLoginUrl(OAUTH2_CONFIG, 'google'),
+				getLoginUrl(OAUTH2_CONFIG, 'facebook'),
+				getLoginUrl(OAUTH2_CONFIG, 'twitter'),
+				getLoginUrl(OAUTH2_CONFIG, 'reddit'),
+				getLoginUrl(OAUTH2_CONFIG, 'auth0'),
+			]).then((urls) => {
+				setLinks({
+					google: urls[0],
+					facebook: urls[1],
+					twitter: urls[2],
+					reddit: urls[3],
+					auth0: urls[4],
+				});
+			});
+		}
+	}, []);
+
 	return (
 		<div>
 			{result ? (
@@ -71,15 +92,15 @@ function App() {
 				</div>
 			) : (
 				<div>
-					<a href={getLoginUrl(OAUTH2_CONFIG, 'google')}>Log in with Google</a>
+					{links.google && <a href={links.google}>Log in with Google</a>}
 					<br />
-					<a href={getLoginUrl(OAUTH2_CONFIG, 'facebook')}>Log in with Facebook</a>
+					{links.facebook && <a href={links.facebook}>Log in with Facebook</a>}
 					<br />
-					<a href={getLoginUrl(OAUTH2_CONFIG, 'twitter')}>Log in with Twitter</a>
+					{links.twitter && <a href={links.twitter}>Log in with Twitter</a>}
 					<br />
-					<a href={getLoginUrl(OAUTH2_CONFIG, 'reddit')}>Log in with Reddit</a>
+					{links.reddit && <a href={links.reddit}>Log in with Reddit</a>}
 					<br />
-					<a href={getLoginUrl(OAUTH2_CONFIG, 'auth0')}>Log in with Auth0</a>
+					{links.auth0 && <a href={links.auth0}>Log in with Auth0</a>}
 				</div>
 			)}
 		</div>

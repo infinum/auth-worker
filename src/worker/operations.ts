@@ -1,14 +1,15 @@
 import jwtDecode from 'jwt-decode';
 import { IUserData } from '../interfaces/IUserData';
 import { AuthError, GrantFlow } from '../shared/enums';
-import { getState, saveState } from './state';
+import { getAuthState, saveAuthState } from './state';
 import { generateResponse, log } from './utils';
 import { fetchWithCredentials, isAllowedUrl } from './fetch';
 import { HttpMethod } from '../interfaces/IAllowList';
 
 export async function createSession(params: string, provider: string, localState: string, host: string, pkce?: string) {
-	const state = await getState();
+	const state = await getAuthState();
 	const parsedParams = new URLSearchParams(params);
+	console.log('state', state);
 
 	if (!state.config) {
 		throw new Error('No config found');
@@ -85,12 +86,12 @@ export async function createSession(params: string, provider: string, localState
 		};
 	}
 
-	await saveState(state);
+	await saveAuthState(state);
 	return getUserData();
 }
 
 export async function getUserData(): Promise<IUserData> {
-	const state = await getState();
+	const state = await getAuthState();
 	if (!state.session) {
 		log('state', state);
 		throw new Error('No session found');
@@ -122,9 +123,9 @@ export async function getUserData(): Promise<IUserData> {
 }
 
 export async function deleteSession() {
-	const state = await getState();
+	const state = await getAuthState();
 	state.session = undefined;
-	await saveState(state);
+	await saveAuthState(state);
 }
 
 export async function fetch(info: RequestInfo | URL, init?: RequestInit): Promise<Response> {

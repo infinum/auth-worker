@@ -1,10 +1,10 @@
 import { HttpMethod } from '../interfaces/IAllowList';
 import { AuthError } from '../shared/enums';
-import { getProviderOptions, getProviderParams, getState, saveState } from './state';
+import { getProviderOptions, getProviderParams, getAuthState, saveAuthState } from './state';
 import { generateResponse, log } from './utils';
 
 export async function refreshToken(): Promise<void> {
-	const state = await getState();
+	const state = await getAuthState();
 	const providerParams = await getProviderParams();
 	const providerOptions = await getProviderOptions();
 	if (!providerParams?.tokenUrl || !state.session?.refreshToken) {
@@ -40,11 +40,11 @@ export async function refreshToken(): Promise<void> {
 	if (providerParams.userInfoTokenName) {
 		state.session.userInfo = response[providerParams.userInfoTokenName];
 	}
-	await saveState(state);
+	await saveAuthState(state);
 }
 
 export async function fetchWithCredentials(request: Request): Promise<Response> {
-	const state = await getState();
+	const state = await getAuthState();
 	const unauthorized = generateResponse({ error: AuthError.Unauthorized }, 401);
 	if (!state.session) {
 		return unauthorized;
@@ -72,7 +72,7 @@ export async function fetchWithCredentials(request: Request): Promise<Response> 
 }
 
 export async function isAllowedUrl(url: string, method: HttpMethod): Promise<boolean> {
-	const state = await getState();
+	const state = await getAuthState();
 	const status =
 		state?.allowList?.some((item) => {
 			if (typeof item === 'string') {

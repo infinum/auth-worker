@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-import { getState } from './state';
+import { getAuthState } from './state';
 import { getHashParams, log } from './utils';
 
 jest.mock('./state', () => ({
@@ -50,23 +50,23 @@ describe('worker/utils', () => {
 
 		it('should log the arguments if debug is enabled in the state', async () => {
 			const mockState = Promise.resolve({ config: { debug: true } });
-			(getState as jest.Mock).mockReturnValueOnce(mockState);
+			(getAuthState as jest.Mock).mockReturnValueOnce(mockState);
 
 			log('Test Log');
 
 			await mockState;
-			expect(getState).toHaveBeenCalled();
+			expect(getAuthState).toHaveBeenCalled();
 			expect(console.log).toHaveBeenCalledWith(expect.stringMatching(/%cWW\/\w{4}/), expect.any(String), 'Test Log');
 		});
 
 		it('should not log the arguments if debug is disabled in the state', async () => {
 			const mockState = Promise.resolve({ config: { debug: false } });
-			(getState as jest.Mock).mockReturnValueOnce(mockState);
+			(getAuthState as jest.Mock).mockReturnValueOnce(mockState);
 
 			log('Test Log');
 
 			await mockState;
-			expect(getState).toHaveBeenCalled();
+			expect(getAuthState).toHaveBeenCalled();
 			expect(console.log).not.toHaveBeenCalled();
 		});
 	});

@@ -1,6 +1,6 @@
 import jwtDecode from 'jwt-decode';
 import { createSession, deleteSession, getUserData } from './operations';
-import { getState, saveState } from './state';
+import { getAuthState, saveAuthState } from './state';
 import { GrantFlow } from '../shared/enums';
 
 jest.mock('./state');
@@ -21,7 +21,7 @@ describe('worker/operations', () => {
 		it('should fail if there is no config', async () => {
 			const state = {};
 
-			(getState as jest.Mock).mockReturnValue(state);
+			(getAuthState as jest.Mock).mockReturnValue(state);
 
 			await expect(createSession('', 'mockProvider', '', 'example.com')).rejects.toThrow('No config found');
 		});
@@ -29,7 +29,7 @@ describe('worker/operations', () => {
 		it('should fail if there is no valid providers', async () => {
 			const state = { config: {} };
 
-			(getState as jest.Mock).mockReturnValue(state);
+			(getAuthState as jest.Mock).mockReturnValue(state);
 
 			await expect(createSession('', 'mockProvider', '', 'example.com')).rejects.toThrow(
 				'No provider params found (createSession)'
@@ -48,7 +48,7 @@ describe('worker/operations', () => {
 				},
 			};
 
-			(getState as jest.Mock).mockReturnValue(state);
+			(getAuthState as jest.Mock).mockReturnValue(state);
 
 			await expect(createSession('', 'mockProvider', '123', 'example.com')).rejects.toThrow('Invalid state');
 		});
@@ -74,7 +74,7 @@ describe('worker/operations', () => {
 				},
 			};
 
-			(getState as jest.Mock).mockResolvedValue(state);
+			(getAuthState as jest.Mock).mockResolvedValue(state);
 
 			const result = await createSession(
 				'state_param=123&expiresIn=12&access=mockAccess&user=mockUserInfo&stuff=test',
@@ -117,7 +117,7 @@ describe('worker/operations', () => {
 				},
 			};
 
-			(getState as jest.Mock).mockResolvedValue(state);
+			(getAuthState as jest.Mock).mockResolvedValue(state);
 
 			await expect(
 				createSession('state_param=123&expiresIn=12&user=mockUserInfo&stuff=test', 'mockProvider', '123', 'example.com')
@@ -147,7 +147,7 @@ describe('worker/operations', () => {
 				},
 			};
 
-			(getState as jest.Mock).mockResolvedValue(state);
+			(getAuthState as jest.Mock).mockResolvedValue(state);
 
 			(fetch as jest.Mock).mockResolvedValueOnce(
 				new Response('{"access_token": "mockAccess", "user": "mockUserInfo"}', { status: 200 })
@@ -207,7 +207,7 @@ describe('worker/operations', () => {
 				},
 			};
 
-			(getState as jest.Mock).mockResolvedValue(state);
+			(getAuthState as jest.Mock).mockResolvedValue(state);
 
 			(fetch as jest.Mock).mockResolvedValueOnce(new Response('{"user": "mockUserInfo"}', { status: 200 }));
 
@@ -236,7 +236,7 @@ describe('worker/operations', () => {
 				},
 			};
 
-			(getState as jest.Mock).mockResolvedValue(state);
+			(getAuthState as jest.Mock).mockResolvedValue(state);
 
 			(fetch as jest.Mock).mockResolvedValueOnce(new Response('someError', { status: 403 }));
 
@@ -264,7 +264,7 @@ describe('worker/operations', () => {
 				},
 			};
 
-			(getState as jest.Mock).mockResolvedValue(state);
+			(getAuthState as jest.Mock).mockResolvedValue(state);
 
 			await expect(createSession('state_param=123&stuff=test', 'mockProvider', '123', 'example.com')).rejects.toThrow(
 				'No access code found'
@@ -297,7 +297,7 @@ describe('worker/operations', () => {
 				},
 			};
 
-			(getState as jest.Mock).mockResolvedValue(state);
+			(getAuthState as jest.Mock).mockResolvedValue(state);
 
 			(fetch as jest.Mock).mockResolvedValueOnce(
 				new Response(
@@ -344,7 +344,7 @@ describe('worker/operations', () => {
 
 	describe('getUserData', () => {
 		it('should fail if session data is missing', async () => {
-			(getState as jest.Mock).mockResolvedValue({});
+			(getAuthState as jest.Mock).mockResolvedValue({});
 
 			await expect(getUserData()).rejects.toThrow('No session found');
 		});
@@ -364,7 +364,7 @@ describe('worker/operations', () => {
 				},
 			};
 
-			(getState as jest.Mock).mockResolvedValue(state);
+			(getAuthState as jest.Mock).mockResolvedValue(state);
 
 			const result = await getUserData();
 
@@ -390,7 +390,7 @@ describe('worker/operations', () => {
 				},
 			};
 
-			(getState as jest.Mock).mockResolvedValue(state);
+			(getAuthState as jest.Mock).mockResolvedValue(state);
 
 			const result = await getUserData();
 
@@ -418,7 +418,7 @@ describe('worker/operations', () => {
 				},
 			};
 
-			(getState as jest.Mock).mockResolvedValue(state);
+			(getAuthState as jest.Mock).mockResolvedValue(state);
 			(fetch as jest.Mock).mockResolvedValueOnce(new Response('{"foo": 1}', { status: 200 }));
 
 			const result = await getUserData();
@@ -448,7 +448,7 @@ describe('worker/operations', () => {
 				},
 			};
 
-			(getState as jest.Mock).mockResolvedValue(state);
+			(getAuthState as jest.Mock).mockResolvedValue(state);
 			(fetch as jest.Mock).mockResolvedValueOnce(new Response('{"foo": 1}', { status: 404 }));
 
 			await expect(getUserData()).rejects.toThrow('Could not get user info');
@@ -459,7 +459,7 @@ describe('worker/operations', () => {
 				session: {},
 			};
 
-			(getState as jest.Mock).mockResolvedValue(state);
+			(getAuthState as jest.Mock).mockResolvedValue(state);
 
 			await expect(getUserData()).rejects.toThrow('No way to get user info');
 		});
@@ -471,11 +471,11 @@ describe('worker/operations', () => {
 				session: {},
 			};
 
-			(getState as jest.Mock).mockReturnValue(state);
+			(getAuthState as jest.Mock).mockReturnValue(state);
 
 			await deleteSession();
 
-			expect(saveState).toHaveBeenCalled();
+			expect(saveAuthState).toHaveBeenCalled();
 			expect(state.session).toBeUndefined();
 		});
 	});

@@ -25,7 +25,7 @@ Otherwise, create a web worker file:
 import { initAuthWebWorker } from 'auth-worker/worker';
 import { google } from 'auth-worker/providers';
 
-initAuthWebWorker({ google });
+initAuthWebWorker({ google }, 'mySuperSecret123');
 ```
 
 For details about the init functions, check out the [init docs](API/init-the-worker.md).

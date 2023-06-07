@@ -1,6 +1,6 @@
 import { AuthError } from '../shared/enums';
 import { fetchWithCredentials, isAllowedUrl, refreshToken } from './fetch';
-import { getProviderOptions, getProviderParams, getState, saveState } from './state';
+import { getProviderOptions, getProviderParams, getAuthState, saveAuthState } from './state';
 
 jest.mock('./state');
 
@@ -19,7 +19,7 @@ describe('worker/fetch', () => {
 		});
 
 		it('should fail on API call fail', async () => {
-			(getState as jest.Mock).mockResolvedValue({
+			(getAuthState as jest.Mock).mockResolvedValue({
 				session: {
 					refreshToken: 'mockRefreshToken',
 				},
@@ -46,7 +46,7 @@ describe('worker/fetch', () => {
 					expiresAt: 0,
 				},
 			};
-			(getState as jest.Mock).mockResolvedValue(state);
+			(getAuthState as jest.Mock).mockResolvedValue(state);
 
 			(getProviderParams as jest.Mock).mockResolvedValue({
 				tokenUrl: 'https://example.com/token',
@@ -85,7 +85,7 @@ describe('worker/fetch', () => {
 				refreshToken: 'newMockRefreshToken',
 			});
 			expect(state.session.expiresAt).toBeGreaterThan(Date.now());
-			expect(saveState).toHaveBeenCalled();
+			expect(saveAuthState).toHaveBeenCalled();
 		});
 
 		it('should work if the provider has user data', async () => {
@@ -103,7 +103,7 @@ describe('worker/fetch', () => {
 					expiresAt: 0,
 				},
 			};
-			(getState as jest.Mock).mockResolvedValue(state);
+			(getAuthState as jest.Mock).mockResolvedValue(state);
 
 			(getProviderParams as jest.Mock).mockResolvedValue({
 				tokenUrl: 'https://example.com/token',
@@ -150,13 +150,13 @@ describe('worker/fetch', () => {
 				userInfo,
 			});
 			expect(state.session.expiresAt).toBeGreaterThan(Date.now());
-			expect(saveState).toHaveBeenCalled();
+			expect(saveAuthState).toHaveBeenCalled();
 		});
 	});
 
 	describe('fetchWithCredentials', () => {
 		it('should fail if no data', async () => {
-			(getState as jest.Mock).mockResolvedValue({});
+			(getAuthState as jest.Mock).mockResolvedValue({});
 
 			const request = new Request('https://example.com');
 			const response = await fetchWithCredentials(request);
@@ -167,7 +167,7 @@ describe('worker/fetch', () => {
 		});
 
 		it('should fail if there is no valid session data', async () => {
-			(getState as jest.Mock).mockResolvedValue({ session: { expiresAt: 0 } });
+			(getAuthState as jest.Mock).mockResolvedValue({ session: { expiresAt: 0 } });
 			const request = new Request('https://example.com');
 			const response = await fetchWithCredentials(request);
 
@@ -177,7 +177,7 @@ describe('worker/fetch', () => {
 		});
 
 		it('should fail if the API returns 401 after the token refresh', async () => {
-			(getState as jest.Mock).mockResolvedValue({
+			(getAuthState as jest.Mock).mockResolvedValue({
 				session: {
 					expiresAt: Date.now() - 1000,
 					refreshToken: 'mockRefreshToken',
@@ -208,7 +208,7 @@ describe('worker/fetch', () => {
 		});
 
 		it('should work for the default case', async () => {
-			(getState as jest.Mock).mockResolvedValue({
+			(getAuthState as jest.Mock).mockResolvedValue({
 				session: {
 					expiresAt: Date.now() - 1000,
 					refreshToken: 'mockRefreshToken',
@@ -251,7 +251,7 @@ describe('worker/fetch', () => {
 
 	describe('isAllowedUrl', () => {
 		it('should allow all if unset', async () => {
-			(getState as jest.Mock).mockResolvedValue({});
+			(getAuthState as jest.Mock).mockResolvedValue({});
 
 			expect(await isAllowedUrl('https://example.com', 'GET')).toBe(true);
 			expect(await isAllowedUrl('https://example.com/foo/bar', 'GET')).toBe(true);
@@ -259,7 +259,7 @@ describe('worker/fetch', () => {
 		});
 
 		it('should disallow all if unknown value', async () => {
-			(getState as jest.Mock).mockResolvedValue({
+			(getAuthState as jest.Mock).mockResolvedValue({
 				allowList: [123],
 			});
 
@@ -269,7 +269,7 @@ describe('worker/fetch', () => {
 		});
 
 		it('should allow all methods with string', async () => {
-			(getState as jest.Mock).mockResolvedValue({
+			(getAuthState as jest.Mock).mockResolvedValue({
 				allowList: ['https://example.com'],
 			});
 
@@ -280,7 +280,7 @@ describe('worker/fetch', () => {
 		});
 
 		it('should allow all methods with string path', async () => {
-			(getState as jest.Mock).mockResolvedValue({
+			(getAuthState as jest.Mock).mockResolvedValue({
 				allowList: ['https://example.com/foo'],
 			});
 
@@ -291,7 +291,7 @@ describe('worker/fetch', () => {
 		});
 
 		it('should allow all methods with regex', async () => {
-			(getState as jest.Mock).mockResolvedValue({
+			(getAuthState as jest.Mock).mockResolvedValue({
 				allowList: [new RegExp('https://example.')],
 			});
 
@@ -303,7 +303,7 @@ describe('worker/fetch', () => {
 		});
 
 		it('should allow specic methods with string path', async () => {
-			(getState as jest.Mock).mockResolvedValue({
+			(getAuthState as jest.Mock).mockResolvedValue({
 				allowList: [{ url: 'https://example.com/foo', methods: ['GET', 'PUT'] }],
 			});
 
@@ -316,7 +316,7 @@ describe('worker/fetch', () => {
 		});
 
 		it('should allow specic methods with regex', async () => {
-			(getState as jest.Mock).mockResolvedValue({
+			(getAuthState as jest.Mock).mockResolvedValue({
 				allowList: [{ url: new RegExp('https://example.'), methods: ['GET', 'PUT'] }],
 			});
 

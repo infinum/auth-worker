@@ -1,4 +1,4 @@
-import { sha256 } from './sha256';
+import { deleteData, getData, getKeys, saveData } from './db';
 import { getRandom } from './utils';
 
 const PKCE_PARAM_NAME = 'auth-worker/pkce';
@@ -20,31 +20,33 @@ function arrayBufferToHex(arrayBuffer: ArrayBuffer): string {
 		.replace(/=/g, '');
 }
 
-export function getPkceVerifier(provider: string): string {
+export async function getPkceVerifier(provider: string) {
 	const param = PKCE_PARAM_NAME + '/' + provider;
-	if (!localStorage.getItem(param)) {
-		localStorage.setItem(param, getRandom(128));
+	let verifier = await getData(param);
+	if (!verifier) {
+		verifier = getRandom(128);
+		await saveData(param, verifier);
 	}
 
-	return localStorage.getItem(param) as string;
+	return verifier;
 }
 
-export function generatePKCE(provider: string): IPKCE {
-	const plain = getPkceVerifier(provider);
-	const hash = sha256(plain);
+export async function generateAsyncPKCE(provider: string): Promise<IPKCE> {
+	const plain = await getPkceVerifier(provider);
 
-	return {
-		codeVerifier: plain,
-		codeChallenge: arrayBufferToHex(hash),
-		codeChallengeMethod: 'S256',
-	};
+	if ('crypto' in globalThis) {
+		const hash = await globalThis.crypto.subtle.digest('SHA-256', new TextEncoder().encode(plain));
+		return {
+			codeVerifier: plain,
+			codeChallenge: arrayBufferToHex(hash),
+			codeChallengeMethod: 'S256',
+		};
+	}
+	throw new Error('Crypto API not supported');
 }
 
-export function deletePkce(): void {
-	const keys = Array.from({ length: localStorage.length }, (_, i) => localStorage.key(i) as string);
-	keys.forEach((key) => {
-		if (key.startsWith(PKCE_PARAM_NAME + '/')) {
-			localStorage.removeItem(key);
-		}
-	});
+export async function deletePkce() {
+	const allKeys = await getKeys();
+	const keys = allKeys.filter((key) => key.startsWith(PKCE_PARAM_NAME + '/'));
+	await deleteData(keys);
 }

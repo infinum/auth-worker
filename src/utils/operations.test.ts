@@ -6,7 +6,7 @@
 import { createSession, getUserData, deleteSession } from './operations';
 import { callWorker } from './postMessage';
 
-import { deleteState, getState } from './storage';
+import { deleteState, getState } from '../shared/storage';
 import { deletePkce, getPkceVerifier } from '../shared/pkce';
 
 jest.mock('./postMessage');

@@ -2,6 +2,7 @@ import { IAllowList } from '../interfaces/IAllowList';
 import { IBaseConfig } from '../interfaces/IBaseConfig';
 import { IFullConfig } from '../interfaces/IFullConfig';
 import { IProvider } from '../interfaces/IProvider';
+import { SECURE_KEY, getData, saveData } from '../shared/db';
 
 export interface IState {
 	config?: IFullConfig;
@@ -17,30 +18,20 @@ export interface IState {
 	allowList?: IAllowList;
 }
 
-let state: IState | null = null;
-
-// eslint-disable-next-line no-underscore-dangle
-export function __setState(newState: IState | null = null) {
-	state = newState;
-}
-
-export async function getState() {
-	if (!state) {
-		// TODO: Should we avoid the in-memory cache and always fetch from the cache?
-		const match = await caches.match('state');
-		state = match ? ((await match.json()) as IState) : { providers: {} };
+export async function getAuthState(): Promise<IState> {
+	const storedState = await getData(SECURE_KEY);
+	if (!storedState) {
+		saveData(SECURE_KEY, JSON.stringify({ providers: {} }));
 	}
-	return { ...state }; // sructuredClone is not supported in Safari & Opera, so this will need to be good enough for now
+	return storedState ? JSON.parse(storedState) : { providers: {} };
 }
 
-export async function saveState(newState: IState) {
-	const cache = await caches.open('v1');
-	state = newState;
-	await cache.put('state', new Response(JSON.stringify(state)));
+export async function saveAuthState(newState: IState) {
+	return saveData(SECURE_KEY, JSON.stringify(newState));
 }
 
 export const getProviderParams = async (): Promise<IProvider> => {
-	const state = await getState();
+	const state = await getAuthState();
 	if (!state.session?.provider) {
 		throw new Error('No provider found');
 	}
@@ -52,7 +43,7 @@ export const getProviderParams = async (): Promise<IProvider> => {
 };
 
 export const getProviderOptions = async (): Promise<IBaseConfig> => {
-	const state = await getState();
+	const state = await getAuthState();
 	if (!state.session?.provider) {
 		throw new Error('No provider found');
 	}

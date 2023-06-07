@@ -1,5 +1,5 @@
 import { IConfig } from '../interfaces/IConfig';
-import { getState } from './state';
+import { getAuthState } from './state';
 
 const INSTANCE = Date.now().toString(36).slice(-4);
 const scope = 'postMessage' in globalThis ? 'WW' : 'SW';
@@ -21,7 +21,7 @@ export function getHashParams(): Record<string, string> {
 }
 
 export function log(...args: Array<unknown>): void {
-	getState().then((state) => {
+	getAuthState().then((state) => {
 		if (state.config?.debug) {
 			console.log(`%c${scope}/${INSTANCE}`, 'font-weight: bold;color: red;', ...args);
 		}
