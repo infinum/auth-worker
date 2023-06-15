@@ -4,7 +4,6 @@ import type {
 	createSession as workerCreateSession,
 	getUserData as workerGetUserData,
 	deleteSession as workerDeleteSession,
-	fetch as workerFetch,
 } from '../worker/operations';
 
 import { deleteState, getState } from '../shared/storage';
@@ -15,7 +14,7 @@ export async function createSession(provider: string) {
 	const query = window.location.search.substring(1);
 	const params = hash && hash.length > 10 ? hash : query;
 	const localState = await getState(provider);
-	const pkce = getPkceVerifier(provider);
+	const pkce = await getPkceVerifier(provider);
 	const response = await callWorker<typeof workerCreateSession>('createSession', [
 		params,
 		provider,
@@ -34,8 +33,4 @@ export function getUserData() {
 
 export function deleteSession() {
 	return callWorker<typeof workerDeleteSession>('deleteSession', []);
-}
-
-export function fetch(...args: Parameters<typeof workerFetch>) {
-	return callWorker<typeof workerFetch>('fetch', args);
 }

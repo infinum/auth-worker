@@ -1,4 +1,4 @@
-import { getLoginUrl, createSession, getUserData, deleteSession, fetch as workerFetch } from 'auth-worker';
+import { getLoginUrl, getUserData, deleteSession } from 'auth-worker';
 import { useCallback, useEffect, useState } from 'react';
 import './App.css';
 import { OAUTH2_CONFIG } from './config';
@@ -21,22 +21,7 @@ function App() {
 			return;
 		}
 		console.log('effect', location.pathname, result);
-		if (location.pathname.startsWith('/redirect/')) {
-			const provider = location.pathname.split('/')[2];
-			if (Object.keys(OAUTH2_CONFIG.providers).includes(provider)) {
-				createSession(provider).then(
-					(userInfo) => {
-						setResult(userInfo as unknown as { data: { name: string; picture: string } });
-						window.history.replaceState({}, '', '/');
-					},
-					(err) => console.error(err)
-				);
-			} else {
-				console.error('Unknown provider', provider);
-			}
-		} else {
-			getUserData().then(setResult as any, () => null);
-		}
+		getUserData().then(setResult as any, () => null);
 	}, []);
 
 	const logout = async () => {
@@ -47,10 +32,9 @@ function App() {
 	const getUserInfo = useCallback(async () => {
 		// @ts-ignore
 		const userInfoUrl: string | undefined = providerUrls[result?.provider];
-		const fetchFn = useSW ? fetch : workerFetch;
 		if (userInfoUrl) {
-			await fetchFn('/test');
-			const res = await fetchFn(userInfoUrl, {
+			await fetch('/test');
+			const res = await fetch(userInfoUrl, {
 				headers: {
 					'X-Use-Auth': 'true',
 				},
@@ -88,19 +72,25 @@ function App() {
 					<img src={result.data?.picture} alt="Profile" />
 					<code>{JSON.stringify(result)}</code>
 					<button onClick={getUserInfo}>Get user info</button>
-					<button onClick={logout}>Logout</button>
+					{/* <button onClick={logout}>Logout</button> */}
+					<a href="/auth/logout">Logout</a>
 				</div>
 			) : (
 				<div>
-					{links.google && <a href={links.google}>Log in with Google</a>}
+					<a href="/auth/login/google">Log in with Google</a>
+					{/* {links.google && <a href={links.google}>Log in with Google</a>} */}
 					<br />
-					{links.facebook && <a href={links.facebook}>Log in with Facebook</a>}
+					<a href="/auth/login/facebook">Log in with Facebook</a>
+					{/* {links.facebook && <a href={links.facebook}>Log in with Facebook</a>} */}
 					<br />
-					{links.twitter && <a href={links.twitter}>Log in with Twitter</a>}
+					<a href="/auth/login/twitter">Log in with Twitter</a>
+					{/* {links.twitter && <a href={links.twitter}>Log in with Twitter</a>} */}
 					<br />
-					{links.reddit && <a href={links.reddit}>Log in with Reddit</a>}
+					<a href="/auth/login/reddit">Log in with Reddit</a>
+					{/* {links.reddit && <a href={links.reddit}>Log in with Reddit</a>} */}
 					<br />
-					{links.auth0 && <a href={links.auth0}>Log in with Auth0</a>}
+					<a href="/auth/login/auth0">Log in with Auth0</a>
+					{/* {links.auth0 && <a href={links.auth0}>Log in with Auth0</a>} */}
 				</div>
 			)}
 		</div>

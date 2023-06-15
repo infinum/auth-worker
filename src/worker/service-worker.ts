@@ -8,8 +8,9 @@ import { getConfig, log } from './utils';
 
 export async function initAuthServiceWorker(
 	providers: Record<string, IProvider>,
-	secret: string,
+	secret?: string,
 	allowList?: IAllowList,
+	basePath?: string,
 	urlConfig?: string
 ): Promise<() => void> {
 	const scope = globalThis as unknown as ServiceWorkerGlobalScope;
@@ -18,8 +19,7 @@ export async function initAuthServiceWorker(
 	const { config, debug } = getConfig(urlConfig);
 	getAuthState().then((state) => {
 		console.log('set config');
-		state.config = { config, providers, debug };
-		state.providers = providers;
+		state.config = { config, providers, debug, basePath };
 		state.allowList = allowList;
 
 		log('init', state.config);
@@ -38,7 +38,7 @@ export async function initAuthServiceWorker(
 		await scope.clients.claim();
 
 		scope.clients.matchAll().then((clients) => {
-			clients.forEach((client) => {
+			clients.forEach(async (client) => {
 				client.postMessage({ type: 'ready' });
 			});
 		});

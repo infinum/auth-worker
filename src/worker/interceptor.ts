@@ -8,40 +8,61 @@ import { createSession, deleteSession } from './operations';
 import { getAuthState } from './state';
 import { generateResponse, log } from './utils';
 
-export async function fetchListener(event: FetchEvent) {
-	const useAuth = event.request.headers.get('X-Use-Auth');
+async function intercept(method: HttpMethod, urlString: string): Promise<URL | void> {
+	const url = new URL(urlString);
 	const state = await getAuthState();
-
-	const url = new URL(event.request.url);
-
-	if (useAuth) {
-		log('🔐 fetch', event.request.method, event.request.url);
-		if (!(await isAllowedUrl(event.request.url, event.request.method as HttpMethod))) {
-			return event.respondWith(generateResponse({ error: AuthError.Unauthorized }, 401));
-		}
-
-		log('🌍 fetch', event.request.method, event.request.url, { auth: Boolean(useAuth) });
-		return event.respondWith(fetchWithCredentials(event.request));
-	} else if (state?.config?.basePath && url.pathname.startsWith(state.config.basePath)) {
-		log('🔐 intercept', event.request.method, event.request.url);
+	if (state?.config?.basePath && url.pathname.startsWith(state.config.basePath)) {
+		log('🔐 intercept', method, url, url.pathname.replace(state.config.basePath, '').split('/'));
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		const [action, provider, _rest] = url.pathname.replace(state.config.basePath, '').split('/');
+		const [_empty, action, provider, _rest] = url.pathname.replace(state.config.basePath, '').split('/');
 		if (action === 'login') {
-			const loginUrl = await getLoginUrl(state.config, provider);
-			return event.respondWith(Response.redirect(loginUrl, 302));
+			const loginUrl = await getLoginUrl(state.config, provider, url.origin);
+			return new URL(loginUrl);
 		} else if (action === 'logout') {
 			await deleteSession();
-			return event.respondWith(generateResponse({}));
+			// TODO: Add configurable logout URL
+			return new URL(url.origin);
 		} else if (action === 'callback') {
 			const hash = url.hash.substring(1);
 			const query = url.search.substring(1);
 			const params = hash && hash.length > 10 ? hash : query;
-			const localState = await getState(provider); // TODO: worker should handle this
-			const pkce = getPkceVerifier(provider); // TODO: worker should handle this
-			const userData = await createSession(params, provider, localState, pkce);
-			return event.respondWith(generateResponse({ userData })); // TODO: redirect to original URL?
+			const localState = await getState(provider);
+			const pkce = await getPkceVerifier(provider);
+			await createSession(params, provider, localState, pkce);
+			// TODO: Add configurable login URL (hash is required!)
+			return new URL('#/', url.origin);
 		} else {
-			return event.respondWith(generateResponse({ error: AuthError.InvalidRequest }, 400));
+			log('🛑 Invalid request', method, urlString);
+			// TODO: Add configurable 404 URL
+			return new URL(url.origin);
 		}
+	}
+}
+
+export async function fetchListener(event: FetchEvent) {
+	const useAuth = event.request.headers.get('X-Use-Auth');
+	const method = event.request.method as HttpMethod;
+
+	if (useAuth) {
+		log('🔐 fetch', event.request.method, event.request.url);
+		event.respondWith(
+			isAllowedUrl(event.request.url, method).then((allowed) => {
+				if (allowed) {
+					log('🌍 fetch', event.request.method, event.request.url, { auth: Boolean(useAuth) });
+					return fetchWithCredentials(event.request);
+				}
+				return generateResponse({ error: AuthError.Unauthorized }, 401);
+			})
+		);
+	} else {
+		event.respondWith(
+			intercept(method, event.request.url).then((response) => {
+				if (response) {
+					log('🔐 redirect', response);
+					return Response.redirect(response, 302);
+				}
+				return fetch(event.request);
+			})
+		);
 	}
 }

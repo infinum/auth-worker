@@ -2,32 +2,38 @@ import { IAllowList } from '../interfaces/IAllowList';
 import { IBaseConfig } from '../interfaces/IBaseConfig';
 import { IFullConfig } from '../interfaces/IFullConfig';
 import { IProvider } from '../interfaces/IProvider';
-import { SECURE_KEY, getData, saveData } from '../shared/db';
+import { SECURE_KEY, getData, isPersistable, saveData } from '../shared/db';
 
 export interface IState {
 	config?: IFullConfig;
 	session?: {
-		provider: keyof IState['providers'];
+		provider: keyof IFullConfig['providers'];
 		accessToken: string;
 		expiresAt: number;
 		refreshToken?: string;
 		tokenType: string;
 		userInfo?: string;
 	};
-	providers: Record<string, IProvider>;
 	allowList?: IAllowList;
 }
 
+const cachedState: IState = {};
+
 export async function getAuthState(): Promise<IState> {
+	if (!isPersistable()) {
+		return cachedState;
+	}
 	const storedState = await getData(SECURE_KEY);
 	if (!storedState) {
-		saveData(SECURE_KEY, JSON.stringify({ providers: {} }));
+		saveData(SECURE_KEY, JSON.stringify(cachedState));
 	}
-	return storedState ? JSON.parse(storedState) : { providers: {} };
+	return storedState ? JSON.parse(storedState) : cachedState;
 }
 
 export async function saveAuthState(newState: IState) {
-	return saveData(SECURE_KEY, JSON.stringify(newState));
+	if (isPersistable()) {
+		return saveData(SECURE_KEY, JSON.stringify(newState));
+	}
 }
 
 export const getProviderParams = async (): Promise<IProvider> => {

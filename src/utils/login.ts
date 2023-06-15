@@ -6,14 +6,14 @@ import { getState } from '../shared/storage';
 export async function getLoginUrl<
 	TConfig extends IFullConfig<TKeys>,
 	TKeys extends string = keyof IFullConfig['providers']
->(config: TConfig, provider: TKeys) {
+>(config: TConfig, provider: TKeys, origin: string = window.location.origin) {
 	const providerParams = config.providers[provider];
 	const providerConfig = config.config[provider];
 
 	if (!providerParams.loginUrl) {
 		throw new Error('No login URL provided');
 	}
-	const redirectPath = window.location.origin + providerConfig.redirectUrl;
+	const redirectPath = origin + providerConfig.redirectUrl;
 
 	const url = new URL(providerParams.loginUrl);
 	url.searchParams.set('client_id', providerConfig.clientId);

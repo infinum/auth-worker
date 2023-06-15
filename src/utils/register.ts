@@ -24,36 +24,3 @@ export function loadAuthServiceWorker(
 
 	return workerRegistration;
 }
-
-export function loadAuthWebWorker(
-	config: IConfig,
-	{ workerPath = './service-worker.js', debug = false }: IWorkerSettings = {}
-) {
-	return new Promise((resolve, reject) => {
-		if (!window.Worker) {
-			throw new Error('Web Workers are not supported in this browser');
-		}
-
-		const workerInstance = new Worker(
-			workerPath +
-				'?' +
-				new URLSearchParams({
-					config: JSON.stringify(config),
-					v: '1',
-					debug: debug ? '1' : '0',
-				}),
-			{ type: 'module' }
-		);
-
-		workerInstance.addEventListener('message', (event) => {
-			if (event.data.type === 'ready') {
-				setWorker(workerInstance);
-				resolve(workerInstance);
-			}
-		});
-
-		workerInstance.addEventListener('error', (event) => {
-			reject(event.error);
-		});
-	});
-}

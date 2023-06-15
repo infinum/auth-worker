@@ -21,7 +21,7 @@ describe('utils/login', () => {
 			localStorage.clear();
 		});
 
-		it('should generate login URL for token flow', () => {
+		it('should generate login URL for token flow', async () => {
 			const config: IFullConfig = {
 				providers: {
 					google,
@@ -36,7 +36,7 @@ describe('utils/login', () => {
 			};
 
 			const provider = 'google';
-			const loginUrl = getLoginUrl(config, provider);
+			const loginUrl = await getLoginUrl(config, provider);
 			expect(loginUrl).toContain('https://accounts.google.com/o/oauth2/v2/auth');
 			expect(loginUrl).toContain('client_id=abc123');
 			expect(loginUrl).toContain('response_type=token');
@@ -45,7 +45,7 @@ describe('utils/login', () => {
 			expect(loginUrl).toContain('redirect_uri=');
 		});
 
-		it('should generate login URL for PKCE flow', () => {
+		it('should generate login URL for PKCE flow', async () => {
 			const config: IFullConfig = {
 				providers: {
 					auth0: auth0('foobar.com'),
@@ -59,7 +59,7 @@ describe('utils/login', () => {
 			};
 
 			const provider = 'auth0';
-			const loginUrl = getLoginUrl(config, provider);
+			const loginUrl = await getLoginUrl(config, provider);
 			expect(loginUrl).toContain('https://foobar.com/authorize');
 			expect(loginUrl).toContain('client_id=abc123');
 			expect(loginUrl).toContain('response_type=code');
@@ -87,7 +87,7 @@ describe('utils/login', () => {
 			};
 
 			const provider = 'mockProvider';
-			expect(() => getLoginUrl(config, provider)).toThrowError('No login URL provided');
+			expect(getLoginUrl(config, provider)).rejects.toThrowError('No login URL provided');
 		});
 	});
 });

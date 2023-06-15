@@ -1,5 +1,5 @@
 import { LocalStorageMock } from '../../test/mock/localStorage';
-import { deletePkce, generatePKCE, getPkceVerifier } from './pkce';
+import { deletePkce, generateAsyncPKCE, getPkceVerifier } from './pkce';
 
 describe('shared/pkce', () => {
 	beforeAll(() => {
@@ -42,17 +42,17 @@ describe('shared/pkce', () => {
 		});
 	});
 
-	describe('generatePKCE', () => {
-		it('should generate a valid PKCE', () => {
-			const pkce = generatePKCE('test');
+	describe('generateAsyncPKCE', () => {
+		it('should generate a valid PKCE', async () => {
+			const pkce = await generateAsyncPKCE('test');
 			expect(pkce.codeVerifier).toHaveLength(128);
 			expect(pkce.codeChallenge).toHaveLength(43);
 			expect(pkce.codeChallengeMethod).toEqual('S256');
 		});
 
-		it('should return the same keys for the same provider', () => {
-			const pkce1 = generatePKCE('test');
-			const pkce2 = generatePKCE('test');
+		it('should return the same keys for the same provider', async () => {
+			const pkce1 = await generateAsyncPKCE('test');
+			const pkce2 = await generateAsyncPKCE('test');
 
 			expect(pkce1.codeVerifier).toEqual(pkce2.codeVerifier);
 			expect(pkce1.codeChallenge).toEqual(pkce2.codeChallenge);
@@ -61,10 +61,10 @@ describe('shared/pkce', () => {
 	});
 
 	describe('deletePkce', () => {
-		it('should regnerate the key after deletion', () => {
-			const pkce1 = generatePKCE('test');
+		it('should regnerate the key after deletion', async () => {
+			const pkce1 = await generateAsyncPKCE('test');
 			deletePkce();
-			const pkce2 = generatePKCE('test');
+			const pkce2 = await generateAsyncPKCE('test');
 
 			expect(pkce1.codeVerifier).not.toEqual(pkce2.codeVerifier);
 		});

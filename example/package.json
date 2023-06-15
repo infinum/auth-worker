@@ -7,8 +7,6 @@
 		"dev": "vite",
 		"build": "tsc && vite build",
 		"preview": "vite preview",
-		"build:ww": "tsup ./workers/web-worker.ts --minify --format iife --dts --sourcemap --out-dir ./public",
-		"dev:ww": "tsup ./workers/web-worker.ts --minify --format iife --dts --sourcemap --out-dir ./public --watch",
 		"build:sw": "tsup ./workers/service-worker.ts --minify --format iife --dts --sourcemap --out-dir ./public",
 		"dev:sw": "tsup ./workers/service-worker.ts --minify --format iife --dts --sourcemap --out-dir ./public --watch"
 	},

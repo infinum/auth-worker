@@ -6,6 +6,11 @@
 		<title>auth-worker test</title>
 	</head>
 	<body>
+		<script type="text/javascript">
+			if (location.hash.length > 2) {
+				alert(location.hash);
+			}
+		</script>
 		<div id="root"></div>
 		<script type="module" src="/src/main.tsx"></script>
 	</body>

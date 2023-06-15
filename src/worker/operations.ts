@@ -1,10 +1,9 @@
 import jwtDecode from 'jwt-decode';
 import { IUserData } from '../interfaces/IUserData';
-import { AuthError, GrantFlow } from '../shared/enums';
+import { GrantFlow } from '../shared/enums';
 import { getAuthState, saveAuthState } from './state';
-import { generateResponse, log } from './utils';
-import { fetchWithCredentials, isAllowedUrl } from './fetch';
-import { HttpMethod } from '../interfaces/IAllowList';
+import { log } from './utils';
+import { fetchWithCredentials } from './fetch';
 
 export async function createSession(params: string, provider: string, localState: string, host: string, pkce?: string) {
 	const state = await getAuthState();
@@ -58,7 +57,7 @@ export async function createSession(params: string, provider: string, localState
 				client_id: providerOptions.clientId,
 				grant_type: 'authorization_code',
 				code: accessCode,
-				code_verifier: pkce ?? '',
+				code_verifier: (await pkce) ?? '',
 				redirect_uri: host + providerOptions.redirectUrl,
 			}),
 		});
@@ -126,12 +125,4 @@ export async function deleteSession() {
 	const state = await getAuthState();
 	state.session = undefined;
 	await saveAuthState(state);
-}
-
-export async function fetch(info: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-	const request = new Request(info, init);
-	if (!(await isAllowedUrl(request.url, request.method as HttpMethod))) {
-		return generateResponse({ error: AuthError.Unauthorized }, 401);
-	}
-	return fetchWithCredentials(request);
 }

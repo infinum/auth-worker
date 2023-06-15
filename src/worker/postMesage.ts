@@ -1,11 +1,10 @@
-import { createSession, getUserData, deleteSession, fetch } from './operations';
+import { createSession, getUserData, deleteSession } from './operations';
 import { log } from './utils';
 
 const operations = {
 	createSession,
 	getUserData,
 	deleteSession,
-	fetch,
 } as const;
 
 export function messageListenerWithOrigin(event: ExtendableMessageEvent | MessageEvent): void {
