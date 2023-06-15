@@ -5,7 +5,7 @@
 	"main": "index.js",
 	"module": "index.mjs",
 	"scripts": {
-		"build": "tsup && node ./prepare.js",
+		"build": "tsup --minify && node ./prepare.js",
 		"lint": "eslint .",
 		"dev": "nodemon -i example -i dist -i node_modules -i test -i 'src/**.test.ts' -e ts,tsx --exec \"npm run build:example\"",
 		"build:example": "npm run build && cd example && rm -rf node_modules/auth-worker && npm install && npm run build:sw -- --clean=false",
