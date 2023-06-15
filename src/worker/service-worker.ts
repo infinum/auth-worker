@@ -8,9 +8,9 @@ import { getConfig, log } from './utils';
 
 export async function initAuthServiceWorker(
 	providers: Record<string, IProvider>,
-	secret?: string,
-	allowList?: IAllowList,
 	basePath?: string,
+	allowList?: IAllowList,
+	secret?: string,
 	urlConfig?: string
 ): Promise<() => void> {
 	const scope = globalThis as unknown as ServiceWorkerGlobalScope;

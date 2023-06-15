@@ -32,7 +32,7 @@ describe('worker/service-worker', () => {
 				},
 			};
 
-			const cleanupFn = await initAuthServiceWorker(providers, undefined, 'config={"test": 1}');
+			const cleanupFn = await initAuthServiceWorker(providers, '/auth', [], undefined, 'config={"test": 1}');
 
 			expect(cleanupFn).toBeInstanceOf(Function);
 			expect(globalThis.addEventListener).toHaveBeenCalledWith('install', expect.any(Function));
@@ -137,7 +137,7 @@ describe('worker/service-worker', () => {
 			delete globalThis.location;
 			globalThis.location = { search: '?config={"test": 2}' } as Location;
 
-			await initAuthServiceWorker(providers, undefined, 'config={"test": 1}');
+			await initAuthServiceWorker(providers, '/auth', [], undefined, 'config={"test": 1}');
 
 			const installFn = (globalThis.addEventListener as jest.Mock).mock.calls[0][1];
 			const activateFn = (globalThis.addEventListener as jest.Mock).mock.calls[1][1];

@@ -6,8 +6,7 @@ export function promisifyRequest<T = undefined>(request: IDBRequest<T> | IDBTran
 		// @ts-ignore - file size hacks
 		request.oncomplete = request.onsuccess = () => resolve(request.result);
 		// @ts-ignore - file size hacks
-		request.onabort = request.onerror = (e) => {
-			console.log('error', e.target?.error);
+		request.onabort = request.onerror = () => {
 			console.error(request.error);
 			reject(request.error);
 		};
