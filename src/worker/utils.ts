@@ -25,7 +25,7 @@ export function log(...args: Array<unknown>): void {
 		if (state.config?.debug) {
 			console.log(`%c${scope}/${INSTANCE}`, 'font-weight: bold;color: red;', ...args);
 		}
-	});
+	}, console.error);
 }
 
 export function generateResponse(resp: null | Record<string, unknown>, status = 200): Response {

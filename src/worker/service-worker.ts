@@ -31,17 +31,19 @@ export async function initAuthServiceWorker(
 		event.waitUntil(scope.skipWaiting());
 	});
 
-	scope.addEventListener('activate', async function (event) {
+	scope.addEventListener('activate', function (event) {
 		log('Claiming control', event);
 
-		await scope.skipWaiting();
-		await scope.clients.claim();
-
-		scope.clients.matchAll().then((clients) => {
-			clients.forEach(async (client) => {
-				client.postMessage({ type: 'ready' });
-			});
-		});
+		scope
+			.skipWaiting()
+			.then(() => scope.clients.claim())
+			.then(() => scope.clients.matchAll())
+			.then((clients) => {
+				clients.forEach((client) => {
+					client.postMessage({ type: 'ready' });
+				});
+			})
+			.catch(console.error);
 	});
 
 	scope.addEventListener('fetch', fetchListener);

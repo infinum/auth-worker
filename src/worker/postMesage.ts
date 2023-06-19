@@ -36,7 +36,7 @@ export function messageListener(event: ExtendableMessageEvent | MessageEvent): v
 								},
 								{ transfer: [data] }
 							);
-						});
+						}, console.error);
 						return;
 					}
 					log('✅', event.data.type, event.data.fnName, result);
