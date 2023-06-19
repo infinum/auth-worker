@@ -140,7 +140,6 @@ describe('worker/operations', () => {
 					},
 					config: {
 						mockProvider: {
-							redirectUrl: '/test',
 							clientId: '123',
 						},
 					},
@@ -290,7 +289,6 @@ describe('worker/operations', () => {
 					},
 					config: {
 						mockProvider: {
-							redirectUrl: '/test',
 							clientId: '123',
 						},
 					},

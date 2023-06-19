@@ -9,7 +9,6 @@ type IConfig = Record<
 	string,
 	{
 		clientId: string;
-		redirectUrl?: string;
 		scopes?: string;
 	}
 >;

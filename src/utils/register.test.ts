@@ -21,7 +21,6 @@ describe('utils/register', () => {
 				{
 					google: {
 						clientId: 'example-client-id',
-						redirectUrl: '/test-redirect',
 						scopes: 'https://www.googleapis.com/auth/userinfo.profile',
 					},
 				},
@@ -40,7 +39,6 @@ describe('utils/register', () => {
 			await loadAuthServiceWorker({
 				google: {
 					clientId: 'example-client-id',
-					redirectUrl: '/test-redirect',
 					scopes: 'https://www.googleapis.com/auth/userinfo.profile',
 				},
 			});

@@ -48,6 +48,7 @@ export async function createSession(params: string, provider: string, localState
 		if (!accessCode) {
 			throw new Error('No access code found');
 		}
+		const redirectUrl = new URL(`${state.config?.basePath}/callback/${provider}`, host);
 		const res = await globalThis.fetch(providerParams.tokenUrl, {
 			method: 'POST',
 			headers: {
@@ -58,7 +59,7 @@ export async function createSession(params: string, provider: string, localState
 				grant_type: 'authorization_code',
 				code: accessCode,
 				code_verifier: (await pkce) ?? '',
-				redirect_uri: host + providerOptions.redirectUrl,
+				redirect_uri: redirectUrl.href,
 			}),
 		});
 

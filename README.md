@@ -37,14 +37,6 @@ _Note: This example shows usage with Google, but the lib supports [multiple prov
 import { initAuthServiceWorker } from 'auth-worker/worker';
 import { google } from 'auth-worker/providers';
 
-addEventListener('install', (event) => {
-	skipWaiting();
-});
-
-addEventListener('activate', (event) => {
-	event.waitUntil(clients.claim());
-});
-
 initAuthServiceWorker({ google }, '/auth', ['/allowed', '/routes']);
 ```
 
@@ -66,7 +58,6 @@ import { loadAuthServiceWorker } from 'auth-worker';
 loadAuthServiceWorker({
 	google: {
 		clientId: 'example-client-id',
-		redirectUrl: '/redirect',
 		scopes: 'https://www.googleapis.com/auth/userinfo.profile',
 	},
 }).catch(console.error);

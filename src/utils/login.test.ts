@@ -29,7 +29,6 @@ describe('utils/login', () => {
 				config: {
 					google: {
 						clientId: 'abc123',
-						redirectUrl: '/redirect',
 						scopes: 'email',
 					},
 				},
@@ -53,7 +52,6 @@ describe('utils/login', () => {
 				config: {
 					auth0: {
 						clientId: 'abc123',
-						redirectUrl: '/redirect',
 					},
 				},
 			};
@@ -80,7 +78,6 @@ describe('utils/login', () => {
 				config: {
 					mockProvider: {
 						clientId: 'abc123',
-						redirectUrl: '/redirect',
 						scopes: 'email',
 					},
 				},

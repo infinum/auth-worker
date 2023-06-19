@@ -65,7 +65,6 @@ describe('worker/state', () => {
 					config: {
 						exampleProvider: {
 							clientId: 'exampleClientId',
-							redirectUrl: 'https://example.com/redirect',
 						},
 					},
 				},
