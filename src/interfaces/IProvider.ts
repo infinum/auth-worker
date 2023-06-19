@@ -1,7 +1,7 @@
 import { GrantFlow } from '../shared/enums';
 
 interface IBasePreset {
-	loginUrl?: string;
+	loginUrl: string;
 	userInfoUrl?: string;
 	userInfoTokenName?: string;
 	accessTokenName?: string;
