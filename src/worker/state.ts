@@ -23,16 +23,18 @@ export async function getAuthState(): Promise<IState> {
 	if (!isPersistable()) {
 		return cachedState;
 	}
-	const storedState = await getData(SECURE_KEY);
-	if (!storedState) {
-		saveData(SECURE_KEY, JSON.stringify(cachedState));
+	const sessionState = await getData(SECURE_KEY);
+	if (!sessionState) {
+		saveData(SECURE_KEY, JSON.stringify(cachedState?.session ?? null));
 	}
-	return storedState ? JSON.parse(storedState) : cachedState;
+
+	cachedState.session = sessionState ? JSON.parse(sessionState) : null;
+	return cachedState;
 }
 
 export async function saveAuthState(newState: IState) {
 	if (isPersistable()) {
-		return saveData(SECURE_KEY, JSON.stringify(newState));
+		return saveData(SECURE_KEY, JSON.stringify(newState?.session ?? null));
 	}
 }
 

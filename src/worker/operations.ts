@@ -8,7 +8,6 @@ import { fetchWithCredentials } from './fetch';
 export async function createSession(params: string, provider: string, localState: string, host: string, pkce?: string) {
 	const state = await getAuthState();
 	const parsedParams = new URLSearchParams(params);
-	console.log('state', state);
 
 	if (!state.config) {
 		throw new Error('No config found');

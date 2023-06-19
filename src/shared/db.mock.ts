@@ -1,7 +1,7 @@
 let secret: string | null = null;
 const data = new Map<string, string>();
 
-export { SECURE_KEY } from './db';
+export const SECURE_KEY = 'auth-worker-state';
 
 export function setSecret(secretPhrase: string | undefined) {
 	secret = secretPhrase || null;
@@ -11,8 +11,14 @@ export function isPersistable(): boolean {
 	return Boolean(secret);
 }
 
-export function setMockData(key: string, value: string) {
-	data.set(key, value);
+export function setMockData(key: string, value: string): void;
+export function setMockData(value: string): void;
+export function setMockData(key: string, value?: string) {
+	if (value === undefined) {
+		data.set(SECURE_KEY, key);
+	} else {
+		data.set(key, value);
+	}
 }
 
 export function clearMockData() {

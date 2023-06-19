@@ -1,12 +1,14 @@
+/**
+ * @jest-environment node
+ */
+
 import jwtDecode from 'jwt-decode';
 import { createSession, deleteSession, getUserData } from './operations';
 import { getAuthState, saveAuthState } from './state';
 import { GrantFlow } from '../shared/enums';
 
 jest.mock('./state');
-jest.mock('jwt-decode', () => {
-	return jest.fn((data) => data);
-});
+jest.mock('jwt-decode');
 
 describe('worker/operations', () => {
 	afterEach(() => {
@@ -15,6 +17,7 @@ describe('worker/operations', () => {
 
 	beforeEach(() => {
 		jest.spyOn(globalThis, 'fetch');
+		(jwtDecode as jest.Mock).mockImplementation((data) => data);
 	});
 
 	describe('createSession', () => {
@@ -23,7 +26,7 @@ describe('worker/operations', () => {
 
 			(getAuthState as jest.Mock).mockReturnValue(state);
 
-			await expect(createSession('', 'mockProvider', '', 'example.com')).rejects.toThrow('No config found');
+			await expect(createSession('', 'mockProvider', '', 'http://example.com')).rejects.toThrow('No config found');
 		});
 
 		it('should fail if there is no valid providers', async () => {
@@ -31,7 +34,7 @@ describe('worker/operations', () => {
 
 			(getAuthState as jest.Mock).mockReturnValue(state);
 
-			await expect(createSession('', 'mockProvider', '', 'example.com')).rejects.toThrow(
+			await expect(createSession('', 'mockProvider', '', 'http://example.com')).rejects.toThrow(
 				'No provider params found (createSession)'
 			);
 		});
@@ -39,6 +42,7 @@ describe('worker/operations', () => {
 		it('should fail on invalid state', async () => {
 			const state = {
 				config: {
+					basePath: '/foo',
 					providers: {
 						mockProvider: {},
 					},
@@ -50,15 +54,16 @@ describe('worker/operations', () => {
 
 			(getAuthState as jest.Mock).mockReturnValue(state);
 
-			await expect(createSession('', 'mockProvider', '123', 'example.com')).rejects.toThrow('Invalid state');
+			await expect(createSession('', 'mockProvider', '123', 'http://example.com')).rejects.toThrow('Invalid state');
 		});
 
-		it('shuld work for token flow', async () => {
+		it('should work for token flow', async () => {
 			const state = {
 				session: {
 					provider: 'mockProvider',
 				},
 				config: {
+					basePath: '/foo',
 					providers: {
 						mockProvider: {
 							stateParam: 'state_param',
@@ -80,7 +85,7 @@ describe('worker/operations', () => {
 				'state_param=123&expiresIn=12&access=mockAccess&user=mockUserInfo&stuff=test',
 				'mockProvider',
 				'123',
-				'example.com'
+				'http://example.com'
 			);
 
 			expect(state.session).toEqual({
@@ -104,6 +109,7 @@ describe('worker/operations', () => {
 					provider: 'mockProvider',
 				},
 				config: {
+					basePath: '/foo',
 					providers: {
 						mockProvider: {
 							stateParam: 'state_param',
@@ -120,7 +126,12 @@ describe('worker/operations', () => {
 			(getAuthState as jest.Mock).mockResolvedValue(state);
 
 			await expect(
-				createSession('state_param=123&expiresIn=12&user=mockUserInfo&stuff=test', 'mockProvider', '123', 'example.com')
+				createSession(
+					'state_param=123&expiresIn=12&user=mockUserInfo&stuff=test',
+					'mockProvider',
+					'123',
+					'http://example.com'
+				)
 			).rejects.toThrow('No access token found');
 		});
 
@@ -130,6 +141,7 @@ describe('worker/operations', () => {
 					provider: 'mockProvider',
 				},
 				config: {
+					basePath: '/foo',
 					providers: {
 						mockProvider: {
 							stateParam: 'state_param',
@@ -156,7 +168,7 @@ describe('worker/operations', () => {
 				'state_param=123&authCode=abc&stuff=test',
 				'mockProvider',
 				'123',
-				'example.com'
+				'http://example.com'
 			);
 
 			expect(state.session).toEqual({
@@ -181,7 +193,7 @@ describe('worker/operations', () => {
 			});
 			expect(params.get('grant_type')).toBe('authorization_code');
 			expect(params.get('code')).toBe('abc');
-			expect(params.get('redirect_uri')).toBe('example.com/test');
+			expect(params.get('redirect_uri')).toBe('http://example.com/foo/callback/mockProvider');
 			expect(params.get('client_id')).toBe('123');
 		});
 
@@ -191,6 +203,7 @@ describe('worker/operations', () => {
 					provider: 'mockProvider',
 				},
 				config: {
+					basePath: '/foo',
 					providers: {
 						mockProvider: {
 							stateParam: 'state_param',
@@ -211,7 +224,7 @@ describe('worker/operations', () => {
 			(fetch as jest.Mock).mockResolvedValueOnce(new Response('{"user": "mockUserInfo"}', { status: 200 }));
 
 			await expect(
-				createSession('state_param=123&authCode=abc&stuff=test', 'mockProvider', '123', 'example.com')
+				createSession('state_param=123&authCode=abc&stuff=test', 'mockProvider', '123', 'http://example.com')
 			).rejects.toThrow('No access token found');
 		});
 
@@ -221,6 +234,7 @@ describe('worker/operations', () => {
 					provider: 'mockProvider',
 				},
 				config: {
+					basePath: '/foo',
 					providers: {
 						mockProvider: {
 							stateParam: 'state_param',
@@ -240,7 +254,7 @@ describe('worker/operations', () => {
 			(fetch as jest.Mock).mockResolvedValueOnce(new Response('someError', { status: 403 }));
 
 			await expect(
-				createSession('state_param=123&authCode=abc&stuff=test', 'mockProvider', '123', 'example.com')
+				createSession('state_param=123&authCode=abc&stuff=test', 'mockProvider', '123', 'http://example.com')
 			).rejects.toThrow('Could not get token');
 		});
 
@@ -250,6 +264,7 @@ describe('worker/operations', () => {
 					provider: 'mockProvider',
 				},
 				config: {
+					basePath: '/foo',
 					providers: {
 						mockProvider: {
 							stateParam: 'state_param',
@@ -265,9 +280,9 @@ describe('worker/operations', () => {
 
 			(getAuthState as jest.Mock).mockResolvedValue(state);
 
-			await expect(createSession('state_param=123&stuff=test', 'mockProvider', '123', 'example.com')).rejects.toThrow(
-				'No access code found'
-			);
+			await expect(
+				createSession('state_param=123&stuff=test', 'mockProvider', '123', 'http://example.com')
+			).rejects.toThrow('No access code found');
 		});
 
 		it('should work for the pkce flow', async () => {
@@ -276,6 +291,7 @@ describe('worker/operations', () => {
 					provider: 'mockProvider',
 				},
 				config: {
+					basePath: '/foo',
 					providers: {
 						mockProvider: {
 							stateParam: 'state_param',
@@ -308,7 +324,7 @@ describe('worker/operations', () => {
 				'state_param=123&authCode=abc&stuff=test',
 				'mockProvider',
 				'123',
-				'example.com',
+				'http://example.com',
 				'mockCodeVerifier'
 			);
 
@@ -334,7 +350,7 @@ describe('worker/operations', () => {
 			});
 			expect(params.get('grant_type')).toBe('authorization_code');
 			expect(params.get('code')).toBe('abc');
-			expect(params.get('redirect_uri')).toBe('example.com/test');
+			expect(params.get('redirect_uri')).toBe('http://example.com/foo/callback/mockProvider');
 			expect(params.get('client_id')).toBe('123');
 			expect(params.get('code_verifier')).toBe('mockCodeVerifier');
 		});
@@ -354,6 +370,7 @@ describe('worker/operations', () => {
 					userInfo: 'mockUserInfo',
 				},
 				config: {
+					basePath: '/foo',
 					providers: {
 						mockProvider: {
 							userInfoParser: jest.fn((data) => data),
@@ -382,6 +399,7 @@ describe('worker/operations', () => {
 					userInfo: 'mockUserInfo',
 				},
 				config: {
+					basePath: '/foo',
 					providers: {
 						mockProvider: {},
 					},
@@ -407,6 +425,7 @@ describe('worker/operations', () => {
 					expiresAt: Date.now() + 3600 * 1000,
 				},
 				config: {
+					basePath: '/foo',
 					providers: {
 						mockProvider: {
 							userInfoUrl: 'https://example.com/userInfo',
@@ -437,6 +456,7 @@ describe('worker/operations', () => {
 					expiresAt: Date.now() + 3600 * 1000,
 				},
 				config: {
+					basePath: '/foo',
 					providers: {
 						mockProvider: {
 							userInfoUrl: 'https://example.com/userInfo',
