@@ -11,7 +11,6 @@ global.TextEncoder = TextEncoder;
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 global.TextDecoder = TextDecoder;
-global.indexedDB = new IDBFactory();
 Object.defineProperty(global, 'crypto', {
 	value: new Crypto(),
 });
@@ -21,6 +20,7 @@ jest.mock('../src/shared/db', () => jest.requireActual('../src/shared/db.mock'))
 
 beforeEach(() => {
 	clearMockData();
+	global.indexedDB = new IDBFactory();
 });
 
 afterEach(() => {
