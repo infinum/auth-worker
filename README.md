@@ -101,6 +101,12 @@ const response = await fetch('https://example.com/api', {
 });
 ```
 
+## Security considerations
+
+By default, this library will not persist the tokens in the browser. Instead, it will just keep them in memory while the service worker is active. This is the most secure option, but it also means that the user will be logged out when the service worker is terminated (for example, when the browser is closed).
+
+If you want to persist the tokens, you can pass a secret key to the `initAuthServiceWorker` function. This will enable the storage in IndexedDB, but it will also mean that the tokens will be stored in the browser and it will be accessible to any script that is able to run in the context of your app. This is a bit safer than just keeping it in plaintext, since the encryption key is hardcoded in the service worker and is not accessible to the main app, but it is still not as secure as the in-memory storage because the key can be extracted (e.g., manually by reading the source code of the page).
+
 # Credits
 
 Published under the [MIT License](LICENSE).
