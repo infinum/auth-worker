@@ -1,36 +1,26 @@
-import { LocalStorageMock } from '../../test/mock/localStorage';
+import { IDBFactory } from 'fake-indexeddb';
+
 import { getState, deleteState } from './storage';
 
 describe('utils/storage', () => {
-	beforeAll(() => {
-		global.localStorage = new LocalStorageMock();
-	});
-
 	beforeEach(() => {
-		localStorage.clear();
+		global.indexedDB = new IDBFactory();
 	});
 
 	describe('getState', () => {
-		it('should work with empty localStorage', () => {
-			const data = getState('test');
-			const repeat = getState('test');
+		it('should work with empty localStorage', async () => {
+			const data = await getState('test');
+			const repeat = await getState('test');
 
 			expect(data).toEqual(repeat);
 			expect(data).toHaveLength(32);
 		});
 
-		it('should work with filled localStorage', () => {
-			localStorage.setItem('auth-worker/state/test', 'test');
-			const data = getState('test');
-
-			expect(data).toEqual('test');
-		});
-
-		it('should work with multiple providers', () => {
-			const dataA = getState('testA');
-			const repeatA = getState('testA');
-			const dataB = getState('testB');
-			const repeatB = getState('testB');
+		it('should work with multiple providers', async () => {
+			const dataA = await getState('testA');
+			const repeatA = await getState('testA');
+			const dataB = await getState('testB');
+			const repeatB = await getState('testB');
 
 			expect(dataA).toEqual(repeatA);
 			expect(dataA).toHaveLength(32);
@@ -43,10 +33,10 @@ describe('utils/storage', () => {
 	});
 
 	describe('deleteStorage', () => {
-		it('should regnerate the key after deletion', () => {
-			const storage1 = getState('test');
-			deleteState();
-			const storage2 = getState('test');
+		it('should regnerate the key after deletion', async () => {
+			const storage1 = await getState('test');
+			await deleteState();
+			const storage2 = await getState('test');
 
 			expect(storage1).not.toEqual(storage2);
 		});
