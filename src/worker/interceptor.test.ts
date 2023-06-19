@@ -1,3 +1,7 @@
+/**
+ * @jest-environment node
+ */
+
 import { fetchListener } from './interceptor';
 import { getProviderOptions, getProviderParams, getAuthState } from './state';
 
@@ -17,10 +21,15 @@ describe('worker/interceptor', () => {
 
 	describe('fetchListener', () => {
 		it('should be ignored if the auth header is not set', async () => {
+			const respondWith = jest.fn();
 			const request = new Request('https://example.com');
-			const response = await fetchListener({ request } as unknown as FetchEvent);
+			const response = await fetchListener({ request, respondWith } as unknown as FetchEvent);
 
 			expect(response).toBeUndefined();
+			(fetch as jest.Mock).mockResolvedValueOnce('mockResponse');
+
+			const mockResp = await respondWith.mock.calls[0][0];
+			expect(mockResp).toEqual('mockResponse');
 		});
 
 		it('should pass on the GET request', async () => {

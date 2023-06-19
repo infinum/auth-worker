@@ -1,3 +1,7 @@
+/**
+ * @jest-environment node
+ */
+
 import { AuthError } from '../shared/enums';
 import { fetchWithCredentials, isAllowedUrl, refreshToken } from './fetch';
 import { getProviderOptions, getProviderParams, getAuthState, saveAuthState } from './state';
