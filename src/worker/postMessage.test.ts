@@ -1,45 +1,36 @@
-/**
- * @jest-environment jsdom
- */
-
 import { MockResponse } from '../../test/mock/Response';
-import { createSession, fetch, deleteSession } from './operations';
+import { createSession, deleteSession, getUserData } from './operations';
 import { messageListener, messageListenerWithOrigin } from './postMesage';
 
 function sleep() {
 	return new Promise((resolve) => setTimeout(resolve, 0));
 }
 
-jest.mock('./state', () => ({
-	getState: jest.fn(() => Promise.resolve({})),
-	saveState: jest.fn(),
-}));
-
-jest.mock('./operations', () => ({
-	createSession: jest.fn().mockRejectedValue(new Error('createSession')),
-	fetch: jest.fn().mockResolvedValue(new MockResponse('foobar', { status: 200, statusText: 'OK', headers: {} })),
-	deleteSession: jest.fn(() => Promise.resolve('deleteSession')),
-}));
+jest.mock('./operations');
 
 describe('worker/postMessage', () => {
 	describe('messageListener', () => {
-		afterEach(() => {
-			jest.clearAllMocks();
-		});
-
 		beforeEach(() => {
 			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 			// @ts-ignore
 			globalThis.Response = MockResponse;
 		});
 
+		afterEach(() => {
+			jest.resetAllMocks();
+		});
+
 		it('should work for the default case', async () => {
 			const postMessage = jest.fn();
 			const options = [1, 2, 3];
+			(getUserData as jest.Mock).mockResolvedValueOnce(
+				new MockResponse('foobar', { status: 200, statusText: 'OK', headers: {} })
+			);
+
 			messageListener({
 				data: {
 					type: 'call',
-					fnName: 'fetch',
+					fnName: 'getUserData',
 					options,
 					caller: 'test',
 				},
@@ -48,7 +39,7 @@ describe('worker/postMessage', () => {
 			} as unknown as ExtendableMessageEvent);
 
 			await sleep();
-			expect(fetch).toHaveBeenCalledWith(...options);
+			expect(getUserData).toHaveBeenCalledWith(...options);
 			expect(postMessage).toHaveBeenCalledWith(
 				{
 					key: 'test',
@@ -66,6 +57,7 @@ describe('worker/postMessage', () => {
 		it('should work for Response objects', async () => {
 			const postMessage = jest.fn();
 			const options = [1, 2, 3];
+			(deleteSession as jest.Mock).mockResolvedValueOnce('deleteSession');
 			messageListener({
 				data: {
 					type: 'call',
@@ -85,6 +77,7 @@ describe('worker/postMessage', () => {
 		it('should handle errors', async () => {
 			const postMessage = jest.fn();
 			const options = [1, 2, 3];
+			(createSession as jest.Mock).mockRejectedValueOnce(new Error('createSession'));
 			messageListenerWithOrigin({
 				data: {
 					type: 'call',
