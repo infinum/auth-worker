@@ -1,4 +1,5 @@
 import { get, set, keys, delMany } from '../vendor/idb-keyval';
+import { decode, encode } from './utils';
 
 export const SECURE_KEY = 'auth-worker-state';
 
@@ -34,14 +35,6 @@ export function setSecret(secretPhrase: string | undefined) {
 
 export function isPersistable(): boolean {
 	return Boolean(secret);
-}
-
-function encode(data: ArrayBuffer): string {
-	return btoa(String.fromCharCode(...new Uint8Array(data)));
-}
-
-function decode(data: string): ArrayBuffer {
-	return Uint8Array.from(atob(data), (c) => c.charCodeAt(0)).buffer;
 }
 
 async function encrypt(data: string) {

@@ -1,5 +1,5 @@
 import { deleteData, getData, getKeys, saveData } from './db';
-import { getRandom } from './utils';
+import { encode, getRandom } from './utils';
 
 const PKCE_PARAM_NAME = 'auth-worker/pkce';
 
@@ -10,14 +10,7 @@ interface IPKCE {
 }
 
 function arrayBufferToHex(arrayBuffer: ArrayBuffer): string {
-	return btoa(
-		Array.from(arrayBuffer as Uint8Array)
-			.map((x: number) => String.fromCharCode(x))
-			.join('')
-	)
-		.replace(/\//g, '_')
-		.replace(/\+/g, '-')
-		.replace(/=/g, '');
+	return encode(arrayBuffer).replace(/\//g, '_').replace(/\+/g, '-').replace(/=/g, '');
 }
 
 export async function getPkceVerifier(provider: string) {
