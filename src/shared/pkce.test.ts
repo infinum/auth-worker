@@ -1,12 +1,6 @@
-import { IDBFactory } from 'fake-indexeddb';
-
 import { deletePkce, generateAsyncPKCE, getPkceVerifier } from './pkce';
 
 describe('shared/pkce', () => {
-	beforeEach(() => {
-		global.indexedDB = new IDBFactory();
-	});
-
 	describe('getPkceVerifier', () => {
 		it('should work with empty storage', async () => {
 			const data = await getPkceVerifier('test');

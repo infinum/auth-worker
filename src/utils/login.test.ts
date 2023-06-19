@@ -1,5 +1,3 @@
-import { IDBFactory } from 'fake-indexeddb';
-
 import { getLoginUrl } from './login';
 import { IFullConfig } from '../interfaces/IFullConfig';
 import { auth0, google } from '../providers';
@@ -7,10 +5,6 @@ import { GrantFlow } from '../shared/enums';
 
 describe('utils/login', () => {
 	describe('getLoginUrl', () => {
-		beforeEach(() => {
-			global.indexedDB = new IDBFactory();
-		});
-
 		it('should generate login URL for token flow', async () => {
 			const config: IFullConfig = {
 				providers: {

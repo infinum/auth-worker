@@ -1,12 +1,6 @@
-import { IDBFactory } from 'fake-indexeddb';
-
 import { getState, deleteState } from './storage';
 
 describe('utils/storage', () => {
-	beforeEach(() => {
-		global.indexedDB = new IDBFactory();
-	});
-
 	describe('getState', () => {
 		it('should work with empty localStorage', async () => {
 			const data = await getState('test');
