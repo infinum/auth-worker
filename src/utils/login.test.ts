@@ -1,24 +1,14 @@
-/**
- * @jest-environment jsdom
- */
+import { IDBFactory } from 'fake-indexeddb';
 
 import { getLoginUrl } from './login';
 import { IFullConfig } from '../interfaces/IFullConfig';
 import { auth0, google } from '../providers';
-import { LocalStorageMock } from '../../test/mock/localStorage';
 import { GrantFlow } from '../shared/enums';
 
 describe('utils/login', () => {
 	describe('getLoginUrl', () => {
-		beforeAll(() => {
-			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-			// @ts-ignore
-			delete globalThis.localStorage;
-			globalThis.localStorage = new LocalStorageMock();
-		});
-
 		beforeEach(() => {
-			localStorage.clear();
+			global.indexedDB = new IDBFactory();
 		});
 
 		it('should generate login URL for token flow', async () => {
@@ -71,6 +61,7 @@ describe('utils/login', () => {
 		it('should fail if ther loginUrl is not defined', () => {
 			const config: IFullConfig = {
 				providers: {
+					// @ts-expect-error Testing a bad config
 					mockProvider: {
 						grantType: GrantFlow.Token,
 					},
