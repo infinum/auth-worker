@@ -40,28 +40,7 @@ export function get<T = string>(key: IDBValidKey): Promise<T | undefined> {
 	return defaultStore()('readonly', (store) => promisifyRequest(store.get(key)));
 }
 
-export function update<T = string>(key: IDBValidKey, updater: (oldValue: T | undefined) => T): Promise<void> {
-	return defaultStore()(
-		'readwrite',
-		(store) =>
-			new Promise((resolve, reject) => {
-				store.get(key).onsuccess = function () {
-					try {
-						store.put(updater(this.result), key);
-						resolve(promisifyRequest(store.transaction));
-					} catch (err) {
-						reject(err);
-					}
-				};
-			})
-	);
-}
-
 export async function set(key: IDBValidKey, value: string): Promise<void> {
-	const keysList = await keys();
-	if (keysList.includes(key)) {
-		return update(key, () => value);
-	}
 	return defaultStore()('readwrite', (store) => {
 		store.put(value, key);
 		return promisifyRequest(store.transaction);

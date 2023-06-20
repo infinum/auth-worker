@@ -16,6 +16,6 @@ addEventListener('activate', (event) => {
 initAuthServiceWorker(
 	{ google, facebook, twitter, reddit, auth0: auth0('dev-u8csbbr8zashh2k8.us.auth0.com') },
 	'/auth',
-	['https://www.googleapis.com/oauth2/v3/userinfo'],
-	'foobartest'
+	['https://www.googleapis.com/oauth2/v3/userinfo']
+	// 'foobartest'
 );

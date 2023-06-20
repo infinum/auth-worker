@@ -1,12 +1,8 @@
-/**
- * @jest-environment jsdom
- */
-
 import { getAuthState } from './state';
 import { getHashParams, log } from './utils';
 
 jest.mock('./state', () => ({
-	getState: jest.fn(),
+	getAuthState: jest.fn(),
 }));
 
 describe('worker/utils', () => {

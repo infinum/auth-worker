@@ -1,6 +1,6 @@
 {
 	"name": "auth-worker",
-	"version": "2.0.0-beta.5",
+	"version": "2.0.0-beta.6",
 	"description": "OAuth2 Service Worker handler",
 	"main": "index.js",
 	"module": "index.mjs",
@@ -23,9 +23,11 @@
 	"homepage": "https://github.com/infinum/auth-worker#readme",
 	"devDependencies": {
 		"@infinumjs/eslint-config-core-ts": "^3.3.1",
+		"@peculiar/webcrypto": "^1.4.3",
 		"@types/jest": "^29.5.1",
 		"@typescript-eslint/parser": "^5.59.2",
 		"eslint": "^8.39.0",
+		"fake-indexeddb": "^4.0.1",
 		"jest": "^29.5.0",
 		"jest-environment-jsdom": "^29.5.0",
 		"lint-staged": "^13.2.2",
@@ -48,6 +50,10 @@
 		"moduleFileExtensions": [
 			"ts",
 			"js"
+		],
+		"testEnvironment": "jest-environment-jsdom",
+		"setupFilesAfterEnv": [
+			"./test/setup.ts"
 		],
 		"testRegex": "src/(.*).test.ts$",
 		"preset": "ts-jest",

@@ -1,36 +1,20 @@
-import { LocalStorageMock } from '../../test/mock/localStorage';
 import { deletePkce, generateAsyncPKCE, getPkceVerifier } from './pkce';
 
 describe('shared/pkce', () => {
-	beforeAll(() => {
-		global.localStorage = new LocalStorageMock();
-	});
-
-	beforeEach(() => {
-		localStorage.clear();
-	});
-
 	describe('getPkceVerifier', () => {
-		it('should work with empty localStorage', () => {
-			const data = getPkceVerifier('test');
-			const repeat = getPkceVerifier('test');
+		it('should work with empty storage', async () => {
+			const data = await getPkceVerifier('test');
+			const repeat = await getPkceVerifier('test');
 
 			expect(data).toEqual(repeat);
 			expect(data).toHaveLength(128);
 		});
 
-		it('should work with filled localStorage', () => {
-			localStorage.setItem('auth-worker/pkce/test', 'test');
-			const data = getPkceVerifier('test');
-
-			expect(data).toEqual('test');
-		});
-
-		it('should work with multiple providers', () => {
-			const dataA = getPkceVerifier('testA');
-			const repeatA = getPkceVerifier('testA');
-			const dataB = getPkceVerifier('testB');
-			const repeatB = getPkceVerifier('testB');
+		it('should work with multiple providers', async () => {
+			const dataA = await getPkceVerifier('testA');
+			const repeatA = await getPkceVerifier('testA');
+			const dataB = await getPkceVerifier('testB');
+			const repeatB = await getPkceVerifier('testB');
 
 			expect(dataA).toEqual(repeatA);
 			expect(dataA).toHaveLength(128);
@@ -63,7 +47,7 @@ describe('shared/pkce', () => {
 	describe('deletePkce', () => {
 		it('should regnerate the key after deletion', async () => {
 			const pkce1 = await generateAsyncPKCE('test');
-			deletePkce();
+			await deletePkce();
 			const pkce2 = await generateAsyncPKCE('test');
 
 			expect(pkce1.codeVerifier).not.toEqual(pkce2.codeVerifier);

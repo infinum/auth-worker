@@ -9,9 +9,9 @@ import type {
 import { deleteState, getState } from '../shared/storage';
 import { deletePkce, getPkceVerifier } from '../shared/pkce';
 
-export async function createSession(provider: string) {
-	const hash = window.location.hash.substring(1);
-	const query = window.location.search.substring(1);
+export async function createSession(provider: string, location: Location | URL = window.location) {
+	const hash = location.hash.substring(1);
+	const query = location.search.substring(1);
 	const params = hash && hash.length > 10 ? hash : query;
 	const localState = await getState(provider);
 	const pkce = await getPkceVerifier(provider);
@@ -19,7 +19,7 @@ export async function createSession(provider: string) {
 		params,
 		provider,
 		localState,
-		window.location.origin,
+		location.origin,
 		pkce,
 	]);
 	deleteState();

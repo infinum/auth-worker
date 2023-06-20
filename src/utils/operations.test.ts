@@ -10,7 +10,7 @@ import { deleteState, getState } from '../shared/storage';
 import { deletePkce, getPkceVerifier } from '../shared/pkce';
 
 jest.mock('./postMessage');
-jest.mock('./storage');
+jest.mock('../shared/storage');
 jest.mock('../shared/pkce');
 
 describe('utils/operations', () => {
@@ -29,11 +29,7 @@ describe('utils/operations', () => {
 		});
 
 		it('should call callWorker with the correct arguments', async () => {
-			globalThis.window = {
-				// @ts-ignore
-				location: new URL('http://example.com?query#hash'),
-			};
-			await createSession('provider');
+			await createSession('provider', new URL('http://example.com?query#hash'));
 			expect(callWorker).toHaveBeenCalledWith('createSession', [
 				'query',
 				'provider',
@@ -46,11 +42,7 @@ describe('utils/operations', () => {
 		});
 
 		it('should call callWorker with hash value if long enough', async () => {
-			globalThis.window = {
-				// @ts-ignore
-				location: new URL('http://example.com?query#hash123456789'),
-			};
-			await createSession('provider');
+			await createSession('provider', new URL('http://example.com?query#hash123456789'));
 			expect(callWorker).toHaveBeenCalledWith('createSession', [
 				'hash123456789',
 				'provider',

@@ -2,10 +2,6 @@ import { getRandom } from './utils';
 
 describe('shared/utils', () => {
 	describe('getRandom', () => {
-		afterEach(() => {
-			jest.resetAllMocks();
-		});
-
 		it('should return a random string', () => {
 			const result = getRandom();
 			expect(result.length).toEqual(32);

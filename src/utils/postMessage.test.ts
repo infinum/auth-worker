@@ -1,3 +1,7 @@
+/**
+ * @jest-environment node
+ */
+
 import { callWorker, setWorker } from './postMessage';
 
 type TListenerFn = (...args: Array<unknown>) => void;

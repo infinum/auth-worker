@@ -1,15 +1,11 @@
-/**
- * @jest-environment jsdom
- */
-
 import { IProvider } from '../interfaces/IProvider';
 import { GrantFlow } from '../shared/enums';
 import { initAuthServiceWorker } from './service-worker';
 import { getAuthState } from './state';
 
 jest.mock('./state', () => ({
-	getState: jest.fn(),
-	saveState: jest.fn(),
+	getAuthState: jest.fn(),
+	saveAuthState: jest.fn(),
 }));
 
 describe('worker/service-worker', () => {
@@ -29,6 +25,7 @@ describe('worker/service-worker', () => {
 			const providers: Record<string, IProvider> = {
 				exampleProvider: {
 					grantType: GrantFlow.Token,
+					loginUrl: 'https://example.com/login',
 				},
 			};
 
@@ -49,6 +46,7 @@ describe('worker/service-worker', () => {
 			const state = await getAuthState();
 
 			expect(state.config).toEqual({
+				basePath: '/auth',
 				config: {
 					test: 1,
 				},
@@ -61,6 +59,7 @@ describe('worker/service-worker', () => {
 			const providers: Record<string, IProvider> = {
 				exampleProvider: {
 					grantType: GrantFlow.Token,
+					loginUrl: 'https://example.com/login',
 				},
 			};
 
@@ -96,6 +95,7 @@ describe('worker/service-worker', () => {
 			const providers: Record<string, IProvider> = {
 				exampleProvider: {
 					grantType: GrantFlow.Token,
+					loginUrl: 'https://example.com/login',
 				},
 			};
 
@@ -129,47 +129,40 @@ describe('worker/service-worker', () => {
 			const providers: Record<string, IProvider> = {
 				exampleProvider: {
 					grantType: GrantFlow.Token,
+					loginUrl: 'https://example.com/login',
 				},
 			};
 
-			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-			// @ts-ignore
-			delete globalThis.location;
-			globalThis.location = { search: '?config={"test": 2}' } as Location;
-
 			await initAuthServiceWorker(providers, '/auth', [], undefined, 'config={"test": 1}');
 
-			const installFn = (globalThis.addEventListener as jest.Mock).mock.calls[0][1];
-			const activateFn = (globalThis.addEventListener as jest.Mock).mock.calls[1][1];
+			const listeners = (globalThis.addEventListener as jest.Mock).mock.calls;
+			const installFn = listeners.find(([type]) => type === 'install')[1];
+			const activateFn = listeners.find(([type]) => type === 'activate')[1];
 
-			const skipWaiting = jest.fn();
+			const postMessage = jest.fn();
+			const skipWaiting = jest.fn().mockResolvedValue(undefined);
 			const claim = jest.fn();
-			const matchAll = jest.fn(() => Promise.resolve([{ postMessage: jest.fn() }]));
+			const matchAll = jest.fn().mockResolvedValue([{ postMessage }, { postMessage }]);
+			const waitUntil = jest.fn();
 
 			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 			// @ts-ignore
-			globalThis.clients = {
-				claim,
-				matchAll,
-			} as unknown as Clients;
+			globalThis.clients = { claim, matchAll } as unknown as Clients;
 
 			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 			// @ts-ignore
 			globalThis.skipWaiting = skipWaiting;
 
-			await installFn({ waitUntil: jest.fn() } as unknown as ExtendableEvent);
+			await installFn({ waitUntil } as unknown as ExtendableEvent);
 
-			expect(skipWaiting).toHaveBeenCalled();
+			expect(skipWaiting).toHaveBeenCalledTimes(1);
 
-			await activateFn({ waitUntil: jest.fn() } as unknown as ExtendableEvent);
+			await activateFn({ waitUntil } as unknown as ExtendableEvent);
 
-			expect(skipWaiting).toHaveBeenCalled();
-			expect(claim).toHaveBeenCalled();
-			expect(matchAll).toHaveBeenCalled();
-
-			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-			// @ts-ignore
-			expect(globalThis.clients.matchAll).toHaveBeenCalled();
+			expect(skipWaiting).toHaveBeenCalledTimes(2);
+			expect(claim).toHaveBeenCalledTimes(1);
+			expect(matchAll).toHaveBeenCalledTimes(1);
+			expect(postMessage).toHaveBeenCalledTimes(2);
 		});
 	});
 });

@@ -18,7 +18,6 @@ export async function initAuthServiceWorker(
 	setSecret(secret);
 	const { config, debug } = getConfig(urlConfig);
 	getAuthState().then((state) => {
-		console.log('set config');
 		state.config = { config, providers, debug, basePath };
 		state.allowList = allowList;
 
@@ -34,7 +33,7 @@ export async function initAuthServiceWorker(
 	scope.addEventListener('activate', function (event) {
 		log('Claiming control', event);
 
-		scope
+		return scope
 			.skipWaiting()
 			.then(() => scope.clients.claim())
 			.then(() => scope.clients.matchAll())

@@ -1,161 +1,189 @@
+import { IState, getAuthState, getProviderOptions, getProviderParams, saveAuthState } from './state';
+import { setSecret } from '../shared/db';
+import { setMockData } from '../shared/db.mock';
 import { GrantFlow } from '../shared/enums';
-import { getAuthState, saveAuthState, getProviderParams, getProviderOptions, __setState, IState } from './state';
 
 describe('worker/state', () => {
-	describe('getState', () => {
-		beforeEach(() => {
-			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-			// @ts-ignore
-			globalThis.caches = {
-				match: jest.fn(),
-			};
-			jest.clearAllMocks();
-			__setState();
-		});
+	describe('getAuthState', () => {
+		it('should return the auth state', async () => {
+			setSecret('foo');
 
-		it('should return a default state object if no cached data exists', async () => {
-			jest.spyOn(globalThis.caches, 'match').mockResolvedValue(undefined);
+			const state = await getAuthState();
 
-			const result = await getAuthState();
-
-			expect(globalThis.caches.match).toHaveBeenCalledWith('state');
-			expect(result).toEqual({ providers: {} });
-		});
-
-		it('should return the cached state object if it exists', async () => {
-			const cachedState = {
-				providers: {
-					exampleProvider: {
-						name: 'Example Provider',
-						clientId: 'exampleClientId',
-						authorizationEndpoint: 'https://example.com/authorize',
-						tokenEndpoint: 'https://example.com/token',
-					},
-				},
-			};
-			jest.spyOn(globalThis.caches, 'match').mockResolvedValue(new Response(JSON.stringify(cachedState)));
-
-			const result = await getAuthState();
-
-			expect(globalThis.caches.match).toHaveBeenCalledWith('state');
-			expect(result).toEqual(cachedState);
-		});
-	});
-
-	describe('saveState', () => {
-		beforeEach(() => {
-			jest.clearAllMocks();
-			__setState();
-		});
-
-		it('should save the state to cache', async () => {
-			const cacheMock = {
-				put: jest.fn(),
-			};
-			globalThis.caches.open = jest.fn().mockResolvedValue(cacheMock);
-
-			const state: IState = {
+			const initialState: IState = {
+				allowList: undefined,
 				config: {
+					basePath: '/auth',
+					config: {},
 					debug: false,
 					providers: {
 						exampleProvider: {
 							grantType: GrantFlow.Token,
+							loginUrl: 'https://example.com/login',
 						},
 					},
-					config: {
+				},
+				session: undefined,
+			};
+
+			state.allowList = undefined;
+			state.config = initialState.config;
+			state.session = undefined;
+
+			setMockData(JSON.stringify(initialState));
+
+			const newState = await getAuthState();
+
+			expect(state).toEqual(newState);
+		});
+
+		it('should work with non-primitive data and session data', async () => {
+			setSecret('foo');
+
+			const state = await getAuthState();
+
+			const initialState: IState = {
+				allowList: undefined,
+				config: {
+					basePath: '/auth',
+					config: {},
+					debug: false,
+					providers: {
 						exampleProvider: {
-							clientId: 'exampleClientId',
+							grantType: GrantFlow.Token,
+							loginUrl: 'https://example.com/login',
+							userInfoParser: (_data) => {
+								return { name: 'Foo Bar' };
+							},
 						},
 					},
 				},
 				session: {
+					expiresAt: Date.now() + 1000,
 					provider: 'exampleProvider',
-					accessToken: 'accessToken',
-					expiresAt: 1234567890,
-					refreshToken: 'refreshToken',
+					accessToken: 'mockAccessToken',
 					tokenType: 'Bearer',
-					userInfo: '{"sub":"1234567890","name":"John Doe","email":"john.doe@example.com"}',
-				},
-				providers: {
-					exampleProvider: {
-						grantType: GrantFlow.Token,
-					},
 				},
 			};
 
-			__setState(state);
-			await saveAuthState(state);
+			state.allowList = undefined;
+			state.config = initialState.config;
+			state.session = initialState.session;
 
-			expect(global.caches.open).toHaveBeenCalledWith('v1');
-			expect(cacheMock.put).toHaveBeenCalledTimes(1);
-			await cacheMock.put.mock.calls[0][1].text().then((text: string) => {
-				expect(text).toEqual(JSON.stringify(state));
-			});
+			saveAuthState(state);
+
+			const newState = await getAuthState();
+
+			expect(state).toEqual(newState);
 		});
 	});
 
-	describe('provider', () => {
-		let mockState: {
-			session?: unknown;
-			config: {
-				providers: Record<string, unknown>;
-				config: Record<string, unknown>;
+	describe('getProviderParams', () => {
+		it('should return the provider params', async () => {
+			const state = await getAuthState();
+			state.session = {
+				provider: 'foo',
+				accessToken: 'mockAccessToken',
+				tokenType: 'Bearer',
+				expiresAt: Date.now() + 1000,
 			};
-		};
-
-		beforeEach(() => {
-			mockState = {
-				session: { provider: 'google' },
-				config: {
-					providers: {
-						google: { clientId: 'google-client-id' },
-					},
-					config: {
-						google: { scope: 'profile email' },
+			state.config = {
+				config: {},
+				providers: {
+					foo: {
+						grantType: GrantFlow.Token,
+						loginUrl: 'https://example.com/login',
 					},
 				},
 			};
 
-			jest.resetModules();
-			__setState(mockState as unknown as IState);
-		});
+			await saveAuthState(state);
 
-		afterEach(() => {
-			jest.restoreAllMocks();
-		});
+			const params = await getProviderParams();
 
-		describe('getProviderParams', () => {
-			it('returns provider params if provider is found in state', async () => {
-				const providerParams = await getProviderParams();
-				expect(providerParams).toEqual({ clientId: 'google-client-id' });
-			});
-
-			it('throws error if provider is not found in state', async () => {
-				mockState.session = {};
-				await expect(getProviderParams()).rejects.toThrow('No provider found');
-			});
-
-			it('throws error if provider params are not found in config', async () => {
-				delete mockState.config.providers.google;
-				await expect(getProviderParams()).rejects.toThrow('No provider params found');
+			expect(params).toEqual({
+				grantType: GrantFlow.Token,
+				loginUrl: 'https://example.com/login',
 			});
 		});
 
-		describe('getProviderOptions', () => {
-			it('returns provider options if provider is found in state', async () => {
-				const providerOptions = await getProviderOptions();
-				expect(providerOptions).toEqual({ scope: 'profile email' });
-			});
+		it('should throw if user is not logged in', async () => {
+			expect(getProviderParams()).rejects.toThrow('No provider found');
+		});
 
-			it('throws error if provider is not found in state', async () => {
-				mockState.session = {};
-				await expect(getProviderOptions()).rejects.toThrow('No provider found');
-			});
+		it('should throw if there is no provider config', async () => {
+			const state = await getAuthState();
+			state.session = {
+				provider: 'foo',
+				accessToken: 'mockAccessToken',
+				tokenType: 'Bearer',
+				expiresAt: Date.now() + 1000,
+			};
+			state.config = {
+				config: {},
+				providers: {
+					bar: {
+						grantType: GrantFlow.Token,
+						loginUrl: 'https://example.com/login',
+					},
+				},
+			};
 
-			it('throws error if provider options are not found in config', async () => {
-				delete mockState.config.config.google;
-				await expect(getProviderOptions()).rejects.toThrow('No provider options found');
+			await saveAuthState(state);
+			expect(getProviderParams()).rejects.toThrow('No provider params found (getProviderParams)');
+		});
+	});
+
+	describe('getProviderOptions', () => {
+		it('should return the provider options', async () => {
+			const state = await getAuthState();
+			state.session = {
+				provider: 'foo',
+				accessToken: 'mockAccessToken',
+				tokenType: 'Bearer',
+				expiresAt: Date.now() + 1000,
+			};
+			state.config = {
+				config: {
+					foo: {
+						clientId: 'mockClientId',
+					},
+				},
+				providers: {},
+			};
+
+			await saveAuthState(state);
+
+			const options = await getProviderOptions();
+
+			expect(options).toEqual({
+				clientId: 'mockClientId',
 			});
+		});
+
+		it('should throw if user is not logged in', async () => {
+			expect(getProviderOptions()).rejects.toThrow('No provider found');
+		});
+
+		it('should throw if there is no provider config', async () => {
+			const state = await getAuthState();
+			state.session = {
+				provider: 'foo',
+				accessToken: 'mockAccessToken',
+				tokenType: 'Bearer',
+				expiresAt: Date.now() + 1000,
+			};
+			state.config = {
+				config: {
+					bar: {
+						clientId: 'mockClientId',
+					},
+				},
+				providers: {},
+			};
+
+			await saveAuthState(state);
+			expect(getProviderOptions()).rejects.toThrow('No provider options found');
 		});
 	});
 });
