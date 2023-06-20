@@ -1,6 +1,6 @@
 {
 	"name": "auth-worker",
-	"version": "2.0.0-beta.5",
+	"version": "2.0.0-beta.6",
 	"description": "OAuth2 Service Worker handler",
 	"main": "index.js",
 	"module": "index.mjs",
