@@ -4,7 +4,7 @@ const data = new Map<string, string>();
 export const SECURE_KEY = 'auth-worker-state';
 
 export function setSecret(secretPhrase: string | undefined) {
-	secret = secretPhrase || null;
+	secret = secretPhrase ?? null;
 }
 
 export function isPersistable(): boolean {
@@ -26,7 +26,7 @@ export function clearMockData() {
 }
 
 export async function getData(key: string): Promise<string | null> {
-	return data.get(key) || null;
+	return data.get(key) ?? null;
 }
 
 export async function saveData(key: string, value: string) {
