@@ -56,7 +56,8 @@ describe('worker/utils', () => {
 
 			await mockState;
 			expect(getAuthState).toHaveBeenCalled();
-			expect(console.log).toHaveBeenCalledWith(expect.stringMatching(/%cWW\/\w{4}/), expect.any(String), 'Test Log');
+			expect(console.log)
+				.toHaveBeenCalledWith(expect.stringMatching(/%cWW\/\w{4}/), expect.any(String), 'Test Log');
 		});
 
 		it('should not log the arguments if debug is disabled in the state', async () => {

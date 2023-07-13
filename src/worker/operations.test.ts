@@ -26,7 +26,8 @@ describe('worker/operations', () => {
 
 			(getAuthState as jest.Mock).mockReturnValue(state);
 
-			await expect(createSession('', 'mockProvider', '', 'http://example.com')).rejects.toThrow('No config found');
+			await expect(createSession('', 'mockProvider', '', 'http://example.com'))
+				.rejects.toThrow('No config found');
 		});
 
 		it('should fail if there is no valid providers', async () => {
@@ -54,7 +55,8 @@ describe('worker/operations', () => {
 
 			(getAuthState as jest.Mock).mockReturnValue(state);
 
-			await expect(createSession('', 'mockProvider', '123', 'http://example.com')).rejects.toThrow('Invalid state');
+			await expect(createSession('', 'mockProvider', '123', 'http://example.com'))
+				.rejects.toThrow('Invalid state');
 		});
 
 		it('should work for token flow', async () => {
@@ -316,6 +318,7 @@ describe('worker/operations', () => {
 
 			(fetch as jest.Mock).mockResolvedValueOnce(
 				new Response(
+					// eslint-disable-next-line max-len
 					'{"access_token": "mockAccess", "user": "mockUserInfo", "expiresIn": 321, "tokenType": "Foo", "refreshToken": "mockRefresh"}',
 					{ status: 200 }
 				)

@@ -10,20 +10,17 @@ const providerUrls: Record<string, string> = {
 	auth0: 'https://dev-u8csbbr8zashh2k8.us.auth0.com/userinfo',
 };
 
-const useSW = localStorage.getItem('useSW') === 'true';
-
 function App() {
-	const [result, setResult] = useState<null | { data: { name: string; picture: string } }>(null);
+	const [result, setResult] = useState<null | { data: { name: string; picture: string }, provider: string }>(null);
 
 	useEffect(() => {
 		if (!result) {
-			getUserData().then(setResult as any, () => null);
+			getUserData().then(setResult as (data: unknown) => void, () => null);
 		}
 	}, []);
 
 	const getUserInfo = useCallback(async () => {
-		// @ts-ignore
-		const userInfoUrl: string | undefined = providerUrls[result?.provider];
+		const userInfoUrl: string | null = result && providerUrls[result.provider];
 
 		if (userInfoUrl) {
 			await fetch('/test');

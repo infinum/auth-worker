@@ -63,6 +63,7 @@ describe('worker/fetch', () => {
 
 			(fetch as jest.Mock).mockResolvedValueOnce(
 				new Response(
+					// eslint-disable-next-line max-len
 					'{"access_token": "mockAccessToken", "token_type": "mockTokenType", "refresh_token": "newMockRefreshToken", "expires_in": 1234567890}',
 					{ status: 200 }
 				)
@@ -200,6 +201,7 @@ describe('worker/fetch', () => {
 
 			(fetch as jest.Mock).mockResolvedValueOnce(
 				new Response(
+					// eslint-disable-next-line max-len
 					'{"access_token": "mockAccessToken", "token_type": "mockTokenType", "refresh_token": "newMockRefreshToken", "expires_in": 1234567890}',
 					{ status: 200 }
 				)
@@ -231,6 +233,7 @@ describe('worker/fetch', () => {
 
 			(fetch as jest.Mock).mockResolvedValueOnce(
 				new Response(
+					// eslint-disable-next-line max-len
 					'{"access_token": "mockAccessToken", "token_type": "mockTokenType", "refresh_token": "newMockRefreshToken", "expires_in": 1234567890}',
 					{ status: 200 }
 				)
