@@ -16,13 +16,13 @@
 		"react-dom": "^18.2.0"
 	},
 	"devDependencies": {
-		"@rollup/plugin-node-resolve": "^15.0.2",
-		"@types/react": "^18.2.5",
-		"@types/react-dom": "^18.2.3",
-		"@vitejs/plugin-react-swc": "^3.3.0",
-		"rollup": "^3.21.4",
+		"@rollup/plugin-node-resolve": "^15.1.0",
+		"@types/react": "^18.2.14",
+		"@types/react-dom": "^18.2.7",
+		"@vitejs/plugin-react-swc": "^3.3.2",
+		"rollup": "^3.26.2",
 		"rollup-plugin-typescript": "^1.0.1",
-		"typescript": "^5.0.4",
-		"vite": "^4.3.4"
+		"typescript": "^5.1.6",
+		"vite": "^4.4.3"
 	}
 }
