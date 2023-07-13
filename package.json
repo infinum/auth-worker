@@ -6,7 +6,7 @@
 	"module": "index.mjs",
 	"scripts": {
 		"build": "tsup --minify && node ./prepare.js",
-		"lint": "eslint .",
+		"lint": "eslint -c ./.eslintrc.json .",
 		"dev": "nodemon -i example -i dist -i node_modules -i test -i 'src/**.test.ts' -e ts,tsx --exec \"npm run build:example\"",
 		"build:example": "npm run build && cd example && rm -rf node_modules/auth-worker && npm install && npm run build:sw -- --clean=false",
 		"test": "jest"
@@ -22,7 +22,7 @@
 	},
 	"homepage": "https://github.com/infinum/auth-worker#readme",
 	"devDependencies": {
-		"@infinumjs/eslint-config-core-ts": "^3.5.0",
+		"@infinum/eslint-plugin": "^1.0.0",
 		"@peculiar/webcrypto": "^1.4.3",
 		"@types/jest": "^29.5.3",
 		"@typescript-eslint/parser": "^5.62.0",

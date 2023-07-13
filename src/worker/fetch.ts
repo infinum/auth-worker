@@ -7,6 +7,7 @@ export async function refreshToken(): Promise<void> {
 	const state = await getAuthState();
 	const providerParams = await getProviderParams();
 	const providerOptions = await getProviderOptions();
+
 	if (!providerParams?.tokenUrl || !state.session?.refreshToken) {
 		throw new Error('No way to refresh the token');
 	}
@@ -46,6 +47,7 @@ export async function refreshToken(): Promise<void> {
 export async function fetchWithCredentials(request: Request): Promise<Response> {
 	const state = await getAuthState();
 	const unauthorized = generateResponse({ error: AuthError.Unauthorized }, 401);
+
 	if (!state.session) {
 		return unauthorized;
 	} else if (state.session.expiresAt < Date.now()) {
@@ -57,10 +59,12 @@ export async function fetchWithCredentials(request: Request): Promise<Response> 
 	}
 
 	const cleanHeaders = new Headers(request.headers);
+
 	cleanHeaders.delete('X-Use-Auth');
 	cleanHeaders.append('Authorization', `${state.session.tokenType} ${state.session.accessToken}`);
 	const updatedRequest = new Request(request, { headers: cleanHeaders });
 	const response = await fetch(updatedRequest);
+
 	if (response.status === 401) {
 		try {
 			await refreshToken();
@@ -68,7 +72,9 @@ export async function fetchWithCredentials(request: Request): Promise<Response> 
 			return unauthorized;
 		}
 	}
-	return response;
+
+	
+return response;
 }
 
 export async function isAllowedUrl(url: string, method: HttpMethod): Promise<boolean> {
@@ -84,8 +90,13 @@ export async function isAllowedUrl(url: string, method: HttpMethod): Promise<boo
 			} else if (typeof item.url === 'string') {
 				return url.startsWith(item.url) && item.methods.includes(method);
 			}
-			return false;
+
+			
+return false;
 		}) ?? true;
+
 	log('🟢 allowed', method, url, status);
-	return status;
+
+	
+return status;
 }

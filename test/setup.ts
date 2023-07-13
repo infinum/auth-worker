@@ -16,6 +16,7 @@ Object.defineProperty(global, 'crypto', {
 });
 
 import { clearMockData } from '../src/shared/db.mock';
+
 jest.mock('../src/shared/db', () => jest.requireActual('../src/shared/db.mock'));
 
 beforeEach(() => {

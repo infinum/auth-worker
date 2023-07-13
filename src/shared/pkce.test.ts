@@ -29,6 +29,7 @@ describe('shared/pkce', () => {
 	describe('generateAsyncPKCE', () => {
 		it('should generate a valid PKCE', async () => {
 			const pkce = await generateAsyncPKCE('test');
+
 			expect(pkce.codeVerifier).toHaveLength(128);
 			expect(pkce.codeChallenge).toHaveLength(43);
 			expect(pkce.codeChallengeMethod).toEqual('S256');
@@ -47,6 +48,7 @@ describe('shared/pkce', () => {
 	describe('deletePkce', () => {
 		it('should regnerate the key after deletion', async () => {
 			const pkce1 = await generateAsyncPKCE('test');
+
 			await deletePkce();
 			const pkce2 = await generateAsyncPKCE('test');
 

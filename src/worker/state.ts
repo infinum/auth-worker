@@ -24,12 +24,15 @@ export async function getAuthState(): Promise<IState> {
 		return cachedState;
 	}
 	const sessionState = await getData(SECURE_KEY);
+
 	if (!sessionState) {
 		saveData(SECURE_KEY, JSON.stringify(cachedState?.session ?? null));
 	}
 
 	cachedState.session = sessionState ? JSON.parse(sessionState) : null;
-	return cachedState;
+
+	
+return cachedState;
 }
 
 export async function saveAuthState(newState: IState) {
@@ -40,24 +43,32 @@ export async function saveAuthState(newState: IState) {
 
 export const getProviderParams = async (): Promise<IProvider> => {
 	const state = await getAuthState();
+
 	if (!state.session?.provider) {
 		throw new Error('No provider found');
 	}
 	const providerParams = state.config?.providers?.[state.session?.provider];
+
 	if (!providerParams) {
 		throw new Error('No provider params found (getProviderParams)');
 	}
-	return providerParams;
+
+	
+return providerParams;
 };
 
 export const getProviderOptions = async (): Promise<IBaseConfig> => {
 	const state = await getAuthState();
+
 	if (!state.session?.provider) {
 		throw new Error('No provider found');
 	}
 	const providerOptions = state.config?.config?.[state.session?.provider];
+
 	if (!providerOptions) {
 		throw new Error('No provider options found');
 	}
-	return providerOptions;
+
+	
+return providerOptions;
 };

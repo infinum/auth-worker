@@ -17,12 +17,15 @@ export async function initAuthServiceWorker(
 
 	setSecret(secret);
 	const { config, debug } = getConfig(urlConfig);
+
 	getAuthState().then((state) => {
 		state.config = { config, providers, debug, basePath };
 		state.allowList = allowList;
 
 		log('init', state.config);
-		return saveAuthState(state);
+
+		
+return saveAuthState(state);
 	});
 
 	scope.addEventListener('install', (event) => {

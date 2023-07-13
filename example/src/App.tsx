@@ -14,6 +14,7 @@ const useSW = localStorage.getItem('useSW') === 'true';
 
 function App() {
 	const [result, setResult] = useState<null | { data: { name: string; picture: string } }>(null);
+
 	useEffect(() => {
 		if (!result) {
 			getUserData().then(setResult as any, () => null);
@@ -23,6 +24,7 @@ function App() {
 	const getUserInfo = useCallback(async () => {
 		// @ts-ignore
 		const userInfoUrl: string | undefined = providerUrls[result?.provider];
+
 		if (userInfoUrl) {
 			await fetch('/test');
 			const res = await fetch(userInfoUrl, {
@@ -31,6 +33,7 @@ function App() {
 				},
 			});
 			const userInfo = await res.json();
+
 			console.log(userInfo);
 		}
 	}, [result]);

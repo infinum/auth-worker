@@ -187,6 +187,7 @@ describe('worker/operations', () => {
 
 			const response = (fetch as jest.Mock).mock.calls[0][1] as RequestInit;
 			const params = response.body as URLSearchParams;
+
 			expect(response.method).toBe('POST');
 			expect(response.headers).toEqual({
 				'Content-Type': 'application/x-www-form-urlencoded',
@@ -344,6 +345,7 @@ describe('worker/operations', () => {
 
 			const response = (fetch as jest.Mock).mock.calls[0][1] as RequestInit;
 			const params = response.body as URLSearchParams;
+
 			expect(response.method).toBe('POST');
 			expect(response.headers).toEqual({
 				'Content-Type': 'application/x-www-form-urlencoded',
@@ -439,6 +441,7 @@ describe('worker/operations', () => {
 			(fetch as jest.Mock).mockResolvedValueOnce(new Response('{"foo": 1}', { status: 200 }));
 
 			const result = await getUserData();
+
 			expect(result).toEqual({
 				provider: 'mockProvider',
 				data: { foo: 1 },

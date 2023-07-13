@@ -23,6 +23,7 @@ describe('worker/postMessage', () => {
 		it('should work for the default case', async () => {
 			const postMessage = jest.fn();
 			const options = [1, 2, 3];
+
 			(getUserData as jest.Mock).mockResolvedValueOnce(
 				new MockResponse('foobar', { status: 200, statusText: 'OK', headers: {} })
 			);
@@ -57,6 +58,7 @@ describe('worker/postMessage', () => {
 		it('should work for Response objects', async () => {
 			const postMessage = jest.fn();
 			const options = [1, 2, 3];
+
 			(deleteSession as jest.Mock).mockResolvedValueOnce('deleteSession');
 			messageListener({
 				data: {
@@ -77,6 +79,7 @@ describe('worker/postMessage', () => {
 		it('should handle errors', async () => {
 			const postMessage = jest.fn();
 			const options = [1, 2, 3];
+
 			(createSession as jest.Mock).mockRejectedValueOnce(new Error('createSession'));
 			messageListenerWithOrigin({
 				data: {
@@ -97,6 +100,7 @@ describe('worker/postMessage', () => {
 		it("should ignore if the origin doesn't match", async () => {
 			const postMessage = jest.fn();
 			const options = [1, 2, 3];
+
 			messageListenerWithOrigin({
 				data: {
 					type: 'call',
@@ -116,6 +120,7 @@ describe('worker/postMessage', () => {
 		it('should do nothing if the type is not "call"', async () => {
 			const postMessage = jest.fn();
 			const options = [1, 2, 3];
+
 			messageListener({
 				data: {
 					type: 'not-call',
@@ -135,6 +140,7 @@ describe('worker/postMessage', () => {
 		it('should do nothing if the fnName is not in operations', async () => {
 			const postMessage = jest.fn();
 			const options = [1, 2, 3];
+
 			messageListener({
 				data: {
 					type: 'call',

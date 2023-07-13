@@ -1,12 +1,12 @@
 {
-	"extends": "@infinumjs/eslint-config-core-ts",
+	"extends": ["plugin:@infinum/core", "plugin:@infinum/typescript"],
 	"overrides": [
 		{
-			"files": ["*.ts"],
-			"parserOptions": {
-				"project": ["./tsconfig.json"]
-			}
+			"files": ["*.ts"]
 		}
 	],
+	"parserOptions": {
+		"project": ["./tsconfig.json"]
+	},
 	"parser": "@typescript-eslint/parser"
 }

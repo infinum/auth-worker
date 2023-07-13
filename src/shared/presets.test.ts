@@ -11,6 +11,7 @@ describe('shared/presets', () => {
 			};
 
 			const result = google?.userInfoParser?.(data);
+
 			expect(result).toEqual({
 				id: '123',
 				name: 'test',
@@ -28,6 +29,7 @@ describe('shared/presets', () => {
 			};
 
 			const result = facebook?.userInfoParser?.(data);
+
 			expect(result).toEqual({
 				id: '123',
 				name: 'test',
@@ -45,6 +47,7 @@ describe('shared/presets', () => {
 			};
 
 			const result = twitter?.userInfoParser?.(data);
+
 			expect(result).toEqual({
 				id: '123',
 				name: 'test',
@@ -62,6 +65,7 @@ describe('shared/presets', () => {
 			};
 
 			const result = reddit?.userInfoParser?.(data);
+
 			expect(result).toEqual({
 				id: '123',
 				name: 'test',
@@ -78,6 +82,7 @@ describe('shared/presets', () => {
 			};
 
 			const result = reddit?.userInfoParser?.(data);
+
 			expect(result).toEqual({
 				id: '123',
 				name: 'test',
@@ -94,6 +99,7 @@ describe('shared/presets', () => {
 			};
 
 			const result = auth0?.('foobar')?.userInfoParser?.(data);
+
 			expect(result).toEqual({
 				id: '123',
 				name: 'test',

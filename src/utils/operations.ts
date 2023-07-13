@@ -22,9 +22,12 @@ export async function createSession(provider: string, location: Location | URL =
 		location.origin,
 		pkce,
 	]);
+
 	deleteState();
 	deletePkce();
-	return response;
+
+	
+return response;
 }
 
 export function getUserData() {

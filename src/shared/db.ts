@@ -10,10 +10,13 @@ const iv = crypto.getRandomValues(new Uint8Array(12));
 export function setSecret(secretPhrase: string | undefined) {
 	if (!secretPhrase) {
 		secret = null;
-		return;
+
+		
+return;
 	}
 	const buf = new ArrayBuffer(secretPhrase.length);
 	const bufView = new Uint8Array(buf);
+
 	for (let i = 0, strLen = secretPhrase.length; i < strLen; i++) {
 		bufView[i] = secretPhrase.charCodeAt(i);
 	}
@@ -50,7 +53,9 @@ async function encrypt(data: string) {
 		});
 	} catch (e) {
 		console.log(e);
-		return '';
+
+		
+return '';
 	}
 }
 
@@ -63,28 +68,39 @@ async function decrypt(data: string) {
 		const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, await secret, decode(data));
 		const decryptedArray = Array.from(new Uint8Array(decrypted));
 		const resultArray = new Uint8Array(decryptedArray.length);
+
 		resultArray.set(decryptedArray);
-		return String.fromCharCode(...resultArray);
+
+		
+return String.fromCharCode(...resultArray);
 	} catch (e) {
 		console.log(e);
-		return null;
+
+		
+return null;
 	}
 }
 
 export async function getData(key: string): Promise<string | null> {
 	try {
 		const rawValue = await get(key);
+
 		if (!rawValue) return null;
 		const value = key === SECURE_KEY ? await decrypt(rawValue) : rawValue;
-		return value;
+
+		
+return value;
 	} catch (e) {
 		console.log(e);
-		return null;
+
+		
+return null;
 	}
 }
 
 export async function saveData(key: string, value: string) {
 	const valueToSave = key === SECURE_KEY ? await encrypt(value) : value;
+
 	if (valueToSave) return set(key, valueToSave);
 }
 

@@ -4,6 +4,7 @@ describe('shared/utils', () => {
 	describe('getRandom', () => {
 		it('should return a random string', () => {
 			const result = getRandom();
+
 			expect(result.length).toEqual(32);
 		});
 
@@ -11,6 +12,7 @@ describe('shared/utils', () => {
 			const TEST_COUNT = 100;
 
 			const results = new Set<string>();
+
 			for (let i = 0; i < TEST_COUNT; i++) {
 				results.add(getRandom());
 			}
@@ -30,6 +32,7 @@ describe('shared/utils', () => {
 			};
 
 			const result = getRandom();
+
 			expect(result).toBe('12345612345612345612345612345612');
 			expect(globalThis.crypto.randomUUID).toHaveBeenCalledTimes(6);
 		});

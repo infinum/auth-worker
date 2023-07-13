@@ -29,6 +29,7 @@ describe('utils/postMessage', () => {
 				controller: Pick<NonNullable<Navigator['serviceWorker']['controller']>, 'postMessage'>;
 			};
 		} = {};
+
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		// @ts-ignore
 		globalThis.navigator = navigator;
@@ -66,7 +67,9 @@ describe('utils/postMessage', () => {
 									},
 									origin: location.origin,
 								};
-								return listener(data);
+
+								
+return listener(data);
 							});
 						}, delay);
 					}),
@@ -91,6 +94,7 @@ describe('utils/postMessage', () => {
 
 		it('should resolve with the expected value', async () => {
 			const result = await callWorker('myFunction', [1, 2, 3]);
+
 			expect(result).toBe(mockReturnValue);
 			expect(navigator.serviceWorker?.removeEventListener).toHaveBeenCalled();
 			expect(navigator.serviceWorker?.controller.postMessage).toHaveBeenCalledWith({
@@ -116,6 +120,7 @@ describe('utils/postMessage', () => {
 			};
 
 			const result = await callWorker('myFunction', [3, 2, 1]);
+
 			expect(result).toBeInstanceOf(Response);
 			expect(result).toHaveProperty('status', 200);
 			expect(result).toHaveProperty('statusText', 'OK');
@@ -127,6 +132,7 @@ describe('utils/postMessage', () => {
 			delay = 50000;
 			jest.useFakeTimers();
 			const result = expect(callWorker('myFunction', [1, 2, 3])).rejects.toThrow('Timeout');
+
 			jest.runAllTimers();
 			await result;
 			expect(navigator.serviceWorker?.removeEventListener).toHaveBeenCalled();

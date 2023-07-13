@@ -81,6 +81,7 @@ describe('worker/state', () => {
 	describe('getProviderParams', () => {
 		it('should return the provider params', async () => {
 			const state = await getAuthState();
+
 			state.session = {
 				provider: 'foo',
 				accessToken: 'mockAccessToken',
@@ -113,6 +114,7 @@ describe('worker/state', () => {
 
 		it('should throw if there is no provider config', async () => {
 			const state = await getAuthState();
+
 			state.session = {
 				provider: 'foo',
 				accessToken: 'mockAccessToken',
@@ -137,6 +139,7 @@ describe('worker/state', () => {
 	describe('getProviderOptions', () => {
 		it('should return the provider options', async () => {
 			const state = await getAuthState();
+
 			state.session = {
 				provider: 'foo',
 				accessToken: 'mockAccessToken',
@@ -167,6 +170,7 @@ describe('worker/state', () => {
 
 		it('should throw if there is no provider config', async () => {
 			const state = await getAuthState();
+
 			state.session = {
 				provider: 'foo',
 				accessToken: 'mockAccessToken',

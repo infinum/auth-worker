@@ -15,17 +15,21 @@ export function promisifyRequest<T = undefined>(request: IDBRequest<T> | IDBTran
 
 export function createStore(dbName: string, storeName: string): UseStore {
 	const request = indexedDB.open(dbName);
+
 	request.onupgradeneeded = () => request.result.createObjectStore(storeName);
 	const dbp = promisifyRequest(request);
 
 	return (txMode, callback) =>
 		dbp.then((db) => {
 			const transaction = db.transaction(storeName, txMode);
+
 			transaction.onerror = () => {
 				console.error(transaction.error);
 			};
 			const store = transaction.objectStore(storeName);
-			return callback(store);
+
+			
+return callback(store);
 		});
 }
 
@@ -43,14 +47,18 @@ export function get<T = string>(key: IDBValidKey): Promise<T | undefined> {
 export async function set(key: IDBValidKey, value: string): Promise<void> {
 	return defaultStore()('readwrite', (store) => {
 		store.put(value, key);
-		return promisifyRequest(store.transaction);
+
+		
+return promisifyRequest(store.transaction);
 	});
 }
 
 export function delMany(keys: Array<IDBValidKey>): Promise<void> {
 	return defaultStore()('readwrite', (store: IDBObjectStore) => {
 		keys.forEach((key: IDBValidKey) => store.delete(key));
-		return promisifyRequest(store.transaction);
+
+		
+return promisifyRequest(store.transaction);
 	});
 }
 

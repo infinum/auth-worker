@@ -56,8 +56,10 @@ describe('utils/operations', () => {
 
 		it('should return the response from callWorker', async () => {
 			const mockResponse = { success: true };
+
 			(callWorker as jest.Mock).mockResolvedValueOnce(mockResponse);
 			const result = await createSession('provider');
+
 			expect(result).toBe(mockResponse);
 		});
 	});
@@ -70,8 +72,10 @@ describe('utils/operations', () => {
 
 		it('should return the response from callWorker', async () => {
 			const mockResponse = { success: true };
+
 			(callWorker as jest.Mock).mockResolvedValueOnce(mockResponse);
 			const result = await getUserData();
+
 			expect(result).toBe(mockResponse);
 		});
 	});
@@ -84,8 +88,10 @@ describe('utils/operations', () => {
 
 		it('should return the response from callWorker', async () => {
 			const mockResponse = { success: true };
+
 			(callWorker as jest.Mock).mockResolvedValueOnce(mockResponse);
 			const result = await deleteSession();
+
 			expect(result).toBe(mockResponse);
 		});
 	});

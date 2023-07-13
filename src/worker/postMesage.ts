@@ -9,16 +9,20 @@ const operations = {
 
 export function messageListenerWithOrigin(event: ExtendableMessageEvent | MessageEvent): void {
 	if (event.origin !== location.origin) return;
-	return messageListener(event);
+
+	
+return messageListener(event);
 }
 
 export function messageListener(event: ExtendableMessageEvent | MessageEvent): void {
 	log('📨', event.data.type, event.data.fnName, event.data);
+
 	if (event.data.type === 'call') {
 		if (event.data.fnName in operations) {
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const fn = operations[event.data.fnName as keyof typeof operations] as any;
 			const target = event.source ?? globalThis;
+
 			fn(...event.data.options).then(
 				(result: unknown) => {
 					if (result instanceof Response) {
@@ -37,7 +41,9 @@ export function messageListener(event: ExtendableMessageEvent | MessageEvent): v
 								{ transfer: [data] }
 							);
 						}, console.error);
-						return;
+
+						
+return;
 					}
 					log('✅', event.data.type, event.data.fnName, result);
 					target.postMessage({ key: event.data.caller, result });

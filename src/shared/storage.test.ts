@@ -29,6 +29,7 @@ describe('utils/storage', () => {
 	describe('deleteStorage', () => {
 		it('should regnerate the key after deletion', async () => {
 			const storage1 = await getState('test');
+
 			await deleteState();
 			const storage2 = await getState('test');
 

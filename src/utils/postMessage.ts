@@ -27,7 +27,9 @@ export function callWorker<
 	TArguments = Parameters<TCallableFunction>
 >(fnName: string, options: TArguments): Promise<TReturnType> {
 	const caller = getRandom();
-	return new Promise((resolve, reject) => {
+
+	
+return new Promise((resolve, reject) => {
 		const timeout = setTimeout(() => {
 			reject(new Error('Timeout'));
 			(worker?.removeEventListener as (type: string, cb: typeof handler) => void)('message', handler);
@@ -41,6 +43,7 @@ export function callWorker<
 
 			if (data.key === caller) {
 				(worker?.removeEventListener as (type: string, cb: typeof handler) => void)('message', handler);
+
 				if (data.error) {
 					reject(new Error(data.error));
 				} else if (data.response) {
@@ -59,6 +62,7 @@ export function callWorker<
 		}
 		(worker?.addEventListener as (type: string, cb: typeof handler) => void)('message', handler);
 		const workerContext = worker && 'postMessage' in worker ? worker : worker?.controller;
+
 		workerContext?.postMessage({ type: 'call', fnName, options, caller });
 	});
 }

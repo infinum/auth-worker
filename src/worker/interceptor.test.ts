@@ -32,6 +32,7 @@ describe('worker/interceptor', () => {
 			(fetch as jest.Mock).mockResolvedValueOnce('mockResponse');
 
 			const mockResp = await respondWith.mock.calls[0][0];
+
 			expect(mockResp).toEqual('mockResponse');
 		});
 
@@ -43,6 +44,7 @@ describe('worker/interceptor', () => {
 					'X-Use-Auth': 'true',
 				},
 			});
+
 			(getAuthState as jest.Mock).mockResolvedValue({
 				session: {
 					expiresAt: Date.now() - 1000,
@@ -70,6 +72,7 @@ describe('worker/interceptor', () => {
 			await fetchListener({ request, respondWith } as unknown as FetchEvent);
 
 			const response = await respondWith.mock.calls[0][0];
+
 			expect(response.status).toBe(200);
 			expect(await response.text()).toEqual('mockResponse');
 		});
@@ -79,6 +82,7 @@ describe('worker/interceptor', () => {
 		it('should redirect to the login URL', async () => {
 			const respondWith = jest.fn();
 			const state = await getAuthState();
+
 			state.config = {
 				basePath: '/foobar',
 				config: {
@@ -107,6 +111,7 @@ describe('worker/interceptor', () => {
 			const response = await respondWith.mock.calls[0][0];
 
 			const location = response.headers.get('location');
+
 			expect(location.startsWith('https://example.com/login?client_id=fooClientId&response_type=token&state=')).toBe(
 				true
 			);
@@ -117,6 +122,7 @@ describe('worker/interceptor', () => {
 		it('should handle the callback URL', async () => {
 			const respondWith = jest.fn();
 			const state = await getAuthState();
+
 			state.config = {
 				basePath: '/foobar',
 				config: {
@@ -143,6 +149,7 @@ describe('worker/interceptor', () => {
 			} as unknown as FetchEvent);
 
 			const response = await respondWith.mock.calls[0][0];
+
 			expect(response.headers.get('location')).toBe('https://example.com/#/');
 			expect(response.status).toBe(302);
 			expect(createSession).toHaveBeenCalledWith(
@@ -156,6 +163,7 @@ describe('worker/interceptor', () => {
 		it('should handle the logout URL', async () => {
 			const respondWith = jest.fn();
 			const state = await getAuthState();
+
 			state.config = {
 				basePath: '/foobar',
 				config: {
@@ -182,6 +190,7 @@ describe('worker/interceptor', () => {
 			} as unknown as FetchEvent);
 
 			const response = await respondWith.mock.calls[0][0];
+
 			expect(response.headers.get('location')).toBe('https://example.com/');
 			expect(response.status).toBe(302);
 			expect(deleteSession).toHaveBeenCalled();
@@ -190,6 +199,7 @@ describe('worker/interceptor', () => {
 		it('should handle 404', async () => {
 			const respondWith = jest.fn();
 			const state = await getAuthState();
+
 			state.config = {
 				basePath: '/foobar',
 				config: {
@@ -216,6 +226,7 @@ describe('worker/interceptor', () => {
 			} as unknown as FetchEvent);
 
 			const response = await respondWith.mock.calls[0][0];
+
 			expect(response.headers.get('location')).toBe('https://example.com/');
 			expect(response.status).toBe(302);
 		});
@@ -223,6 +234,7 @@ describe('worker/interceptor', () => {
 		it('should ignore other URLs', async () => {
 			const respondWith = jest.fn();
 			const state = await getAuthState();
+
 			state.config = {
 				basePath: '/foobar',
 				config: {
@@ -249,6 +261,7 @@ describe('worker/interceptor', () => {
 			} as unknown as FetchEvent);
 
 			const response = await respondWith.mock.calls[0][0];
+
 			expect(response).toBe('mockResponse');
 		});
 	});

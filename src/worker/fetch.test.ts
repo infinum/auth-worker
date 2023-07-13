@@ -50,6 +50,7 @@ describe('worker/fetch', () => {
 					expiresAt: 0,
 				},
 			};
+
 			(getAuthState as jest.Mock).mockResolvedValue(state);
 
 			(getProviderParams as jest.Mock).mockResolvedValue({
@@ -107,6 +108,7 @@ describe('worker/fetch', () => {
 					expiresAt: 0,
 				},
 			};
+
 			(getAuthState as jest.Mock).mockResolvedValue(state);
 
 			(getProviderParams as jest.Mock).mockResolvedValue({
@@ -246,6 +248,7 @@ describe('worker/fetch', () => {
 
 			expect(response.status).toBe(200);
 			const reqHeaders = (fetch as jest.Mock).mock.calls[1][0].headers;
+
 			expect(reqHeaders.get('Authorization')).toBe('mockTokenType mockAccessToken');
 			expect(reqHeaders.get('Content-Type')).toBe('foo/bar');
 			expect(reqHeaders.get('X-Use-Auth')).toBeNull();

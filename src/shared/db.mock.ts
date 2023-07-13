@@ -12,7 +12,9 @@ export function isPersistable(): boolean {
 }
 
 export function setMockData(key: string, value: string): void;
+
 export function setMockData(value: string): void;
+
 export function setMockData(key: string, value?: string) {
 	if (value === undefined) {
 		data.set(SECURE_KEY, key);

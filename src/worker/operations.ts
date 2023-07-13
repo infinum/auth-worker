@@ -21,6 +21,7 @@ export async function createSession(params: string, provider: string, localState
 	}
 
 	const stateParam = parsedParams.get(providerParams.stateParam ?? 'state');
+
 	if (stateParam !== localState) {
 		throw new Error('Invalid state');
 	}
@@ -28,6 +29,7 @@ export async function createSession(params: string, provider: string, localState
 	if (providerParams.grantType === GrantFlow.Token) {
 		const expiresIn = parseInt(parsedParams.get(providerParams.expiresInName ?? 'expires_in') ?? '', 10) ?? 3600;
 		const accessToken = parsedParams.get(providerParams.accessTokenName ?? 'access_token');
+
 		if (!accessToken) {
 			throw new Error('No access token found');
 		}
@@ -44,6 +46,7 @@ export async function createSession(params: string, provider: string, localState
 
 	if (providerParams.grantType === GrantFlow.AuthorizationCode || providerParams.grantType === GrantFlow.PKCE) {
 		const accessCode = parsedParams.get(providerParams.authorizationCodeParam ?? 'code');
+
 		if (!accessCode) {
 			throw new Error('No access code found');
 		}
@@ -86,31 +89,41 @@ export async function createSession(params: string, provider: string, localState
 	}
 
 	await saveAuthState(state);
-	return getUserData();
+
+	
+return getUserData();
 }
 
 export async function getUserData(): Promise<IUserData> {
 	const state = await getAuthState();
+
 	if (!state.session) {
 		log('state', state);
+
 		throw new Error('No session found');
 	}
 
 	const providerParams = state.config?.providers?.[state.session.provider];
+
 	if (state.session.userInfo) {
 		const decoded: Record<string, unknown> = jwtDecode(state.session.userInfo);
-		return {
+
+		
+return {
 			provider: state.session.provider,
 			data: (providerParams?.userInfoParser?.(decoded) ?? decoded) as Record<string, unknown>,
 		};
 	} else if (providerParams?.userInfoUrl) {
 		const request = new Request(providerParams.userInfoUrl);
 		const resp = await fetchWithCredentials(request);
+
 		if (resp.status !== 200) {
 			throw new Error('Could not get user info');
 		}
 		const response = await resp.json();
-		return {
+
+		
+return {
 			data: (providerParams?.userInfoParser?.(response) ?? response) as Record<string, unknown>,
 			provider: state.session.provider,
 			expiresAt: state.session.expiresAt,
@@ -123,6 +136,7 @@ export async function getUserData(): Promise<IUserData> {
 
 export async function deleteSession() {
 	const state = await getAuthState();
+
 	state.session = undefined;
 	await saveAuthState(state);
 }

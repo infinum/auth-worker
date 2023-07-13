@@ -20,6 +20,7 @@ describe('utils/login', () => {
 
 			const provider = 'google';
 			const loginUrl = await getLoginUrl(config, provider);
+
 			expect(loginUrl).toContain('https://accounts.google.com/o/oauth2/v2/auth');
 			expect(loginUrl).toContain('client_id=abc123');
 			expect(loginUrl).toContain('response_type=token');
@@ -42,6 +43,7 @@ describe('utils/login', () => {
 
 			const provider = 'auth0';
 			const loginUrl = await getLoginUrl(config, provider);
+
 			expect(loginUrl).toContain('https://foobar.com/authorize');
 			expect(loginUrl).toContain('client_id=abc123');
 			expect(loginUrl).toContain('response_type=code');
@@ -69,6 +71,7 @@ describe('utils/login', () => {
 			};
 
 			const provider = 'mockProvider';
+
 			expect(getLoginUrl(config, provider)).rejects.toThrowError('No login URL provided');
 		});
 	});

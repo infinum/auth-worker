@@ -18,6 +18,7 @@ export function loadAuthServiceWorker(
 	);
 
 	const workerInstance = window.navigator.serviceWorker;
+
 	if (workerInstance) {
 		setWorker(workerInstance);
 	}
