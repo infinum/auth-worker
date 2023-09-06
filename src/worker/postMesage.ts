@@ -10,8 +10,7 @@ const operations = {
 export function messageListenerWithOrigin(event: ExtendableMessageEvent | MessageEvent): void {
 	if (event.origin !== location.origin) return;
 
-	
-return messageListener(event);
+	return messageListener(event);
 }
 
 export function messageListener(event: ExtendableMessageEvent | MessageEvent): void {
@@ -42,8 +41,7 @@ export function messageListener(event: ExtendableMessageEvent | MessageEvent): v
 							);
 						}, console.error);
 
-						
-return;
+						return;
 					}
 					log('✅', event.data.type, event.data.fnName, result);
 					target.postMessage({ key: event.data.caller, result });
@@ -54,5 +52,10 @@ return;
 				}
 			);
 		}
+	} else if (event.data.type === 'ping') {
+		const target = event.source ?? globalThis;
+
+		log('🏓', event.data.type);
+		target.postMessage({ type: 'pong' });
 	}
 }

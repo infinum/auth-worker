@@ -1,6 +1,6 @@
 import { IConfig } from '../interfaces/IConfig';
 import { IWorkerSettings } from '../interfaces/IWorkerSettins';
-import { setWorker } from './postMessage';
+import { setWorker, ping } from './postMessage';
 
 export function loadAuthServiceWorker(
 	config: IConfig,
@@ -21,6 +21,8 @@ export function loadAuthServiceWorker(
 
 	if (workerInstance) {
 		setWorker(workerInstance);
+
+		setInterval(ping, 10_000);
 	}
 
 	return workerRegistration;

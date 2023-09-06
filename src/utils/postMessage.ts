@@ -20,16 +20,21 @@ interface IMessagePayload<TReturnType> {
 	result: TReturnType;
 }
 
+export function ping() {
+	const workerContext = worker && 'postMessage' in worker ? worker : worker?.controller;
+
+	workerContext?.postMessage({ type: 'ping' });
+}
+
 export function callWorker<
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	TCallableFunction extends (...args: any) => unknown,
 	TReturnType = ReturnType<TCallableFunction>,
-	TArguments = Parameters<TCallableFunction>
+	TArguments = Parameters<TCallableFunction>,
 >(fnName: string, options: TArguments): Promise<TReturnType> {
 	const caller = getRandom();
 
-	
-return new Promise((resolve, reject) => {
+	return new Promise((resolve, reject) => {
 		const timeout = setTimeout(() => {
 			reject(new Error('Timeout'));
 			(worker?.removeEventListener as (type: string, cb: typeof handler) => void)('message', handler);
