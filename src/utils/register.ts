@@ -30,7 +30,7 @@ export function loadAuthServiceWorker(
 	if (workerInstance) {
 		setWorker(workerInstance);
 
-		setInterval(ping, 10_000);
+		setInterval(ping, 5000);
 	}
 
 	return workerRegistration;
