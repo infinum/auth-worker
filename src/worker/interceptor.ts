@@ -20,8 +20,7 @@ async function intercept(method: HttpMethod, urlString: string): Promise<URL | v
 		if (action === 'login') {
 			const loginUrl = await getLoginUrl(state.config, provider, url.origin);
 
-			
-return new URL(loginUrl);
+			return new URL(loginUrl);
 		} else if (action === 'logout') {
 			await deleteSession();
 
@@ -34,7 +33,7 @@ return new URL(loginUrl);
 			const localState = await getState(provider);
 			const pkce = await getPkceVerifier(provider);
 
-			await createSession(params, provider, localState, pkce);
+			await createSession(params, provider, localState, location.origin, pkce);
 
 			// TODO: Add configurable login URL (hash is required!)
 			return new URL('#/', url.origin);
@@ -58,12 +57,10 @@ export async function fetchListener(event: FetchEvent) {
 				if (allowed) {
 					log('🌍 fetch', event.request.method, event.request.url, { auth: Boolean(useAuth) });
 
-					
-return fetchWithCredentials(event.request);
+					return fetchWithCredentials(event.request);
 				}
 
-				
-return generateResponse({ error: AuthError.Unauthorized }, 401);
+				return generateResponse({ error: AuthError.Unauthorized }, 401);
 			})
 		);
 	} else {
@@ -72,12 +69,10 @@ return generateResponse({ error: AuthError.Unauthorized }, 401);
 				if (response) {
 					log('🔐 redirect', response);
 
-					
-return Response.redirect(response, 302);
+					return Response.redirect(response, 302);
 				}
 
-				
-return fetch(event.request);
+				return fetch(event.request);
 			})
 		);
 	}
