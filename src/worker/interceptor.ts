@@ -34,7 +34,7 @@ return new URL(loginUrl);
 			const localState = await getState(provider);
 			const pkce = await getPkceVerifier(provider);
 
-			await createSession(params, provider, localState, pkce);
+			await createSession(params, provider, localState, url.origin, pkce);
 
 			// TODO: Add configurable login URL (hash is required!)
 			return new URL('#/', url.origin);
