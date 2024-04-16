@@ -33,7 +33,7 @@ async function intercept(method: HttpMethod, urlString: string): Promise<URL | v
 			const localState = await getState(provider);
 			const pkce = await getPkceVerifier(provider);
 
-			await createSession(params, provider, localState, location.origin, pkce);
+			await createSession(params, provider, localState, url.origin, pkce);
 
 			// TODO: Add configurable login URL (hash is required!)
 			return new URL('#/', url.origin);
