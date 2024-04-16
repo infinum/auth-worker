@@ -14,7 +14,12 @@ describe('worker/fetch', () => {
 	});
 
 	beforeEach(() => {
-		jest.spyOn(globalThis, 'fetch');
+		Object.defineProperty(globalThis, 'fetch', {
+			configurable: true,
+			enumerable: true,
+			value: jest.fn(),
+			writable: true,
+		});
 	});
 
 	describe('refreshToken', () => {

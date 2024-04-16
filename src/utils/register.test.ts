@@ -6,7 +6,11 @@ describe('utils/register', () => {
 			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 			// @ts-ignore
 			window.navigator.serviceWorker = {
-				register: jest.fn(() => Promise.resolve()),
+				register: jest.fn(() =>
+					Promise.resolve({
+						unregister: jest.fn(),
+					})
+				),
 				addEventListener: jest.fn(),
 				removeEventListener: jest.fn(),
 			};

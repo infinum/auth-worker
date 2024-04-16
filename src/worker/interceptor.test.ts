@@ -16,7 +16,12 @@ describe('worker/interceptor', () => {
 	});
 
 	beforeEach(() => {
-		jest.spyOn(globalThis, 'fetch');
+		Object.defineProperty(globalThis, 'fetch', {
+			configurable: true,
+			enumerable: true,
+			value: jest.fn(),
+			writable: true,
+		});
 		(getAuthState as jest.Mock).mockResolvedValue({
 			allowList: undefined,
 		});
@@ -113,10 +118,12 @@ describe('worker/interceptor', () => {
 
 			const location = response.headers.get('location');
 
-			expect(location.startsWith('https://example.com/login?client_id=fooClientId&response_type=token&state='))
-				.toBe(true);
-			expect(location.endsWith('&scope=&redirect_uri=https%3A%2F%2Fexample.com%2Ffoobar%2Fcallback%2Ffoo'))
-				.toBe(true);
+			// eslint-disable-next-line max-len
+			expect(location.startsWith('https://example.com/login?client_id=fooClientId&response_type=token&state=')).toBe(
+				true
+			);
+			// eslint-disable-next-line max-len
+			expect(location.endsWith('&scope=&redirect_uri=https%3A%2F%2Fexample.com%2Ffoobar%2Fcallback%2Ffoo')).toBe(true);
 			expect(response.status).toBe(302);
 		});
 
@@ -157,6 +164,7 @@ describe('worker/interceptor', () => {
 				'foobartest123',
 				'foo',
 				expect.stringMatching(/[a-z0-9]{16}/),
+				'https://example.com',
 				expect.stringMatching(/[a-z0-9]{128}/)
 			);
 		});

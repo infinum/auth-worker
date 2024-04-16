@@ -16,7 +16,12 @@ describe('worker/operations', () => {
 	});
 
 	beforeEach(() => {
-		jest.spyOn(globalThis, 'fetch');
+		Object.defineProperty(globalThis, 'fetch', {
+			configurable: true,
+			enumerable: true,
+			value: jest.fn(),
+			writable: true,
+		});
 		(jwtDecode as jest.Mock).mockImplementation((data) => data);
 	});
 
@@ -26,8 +31,8 @@ describe('worker/operations', () => {
 
 			(getAuthState as jest.Mock).mockReturnValue(state);
 
-			await expect(createSession('', 'mockProvider', '', 'http://example.com'))
-				.rejects.toThrow('No config found');
+			// eslint-disable-next-line max-len
+			await expect(createSession('', 'mockProvider', '', 'http://example.com')).rejects.toThrow('No config found');
 		});
 
 		it('should fail if there is no valid providers', async () => {
@@ -55,8 +60,8 @@ describe('worker/operations', () => {
 
 			(getAuthState as jest.Mock).mockReturnValue(state);
 
-			await expect(createSession('', 'mockProvider', '123', 'http://example.com'))
-				.rejects.toThrow('Invalid state');
+			// eslint-disable-next-line max-len
+			await expect(createSession('', 'mockProvider', '123', 'http://example.com')).rejects.toThrow('Invalid state');
 		});
 
 		it('should work for token flow', async () => {
