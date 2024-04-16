@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.0.1
+
+Bugfixes
+
 ## v2.0.0
 
 The initial release of `auth-worker`
